@@ -1,0 +1,4161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="description" content="从一次分子碰撞到宏观压强，七步推导理想气体压强公式。可旋转的 3D 气体容器、实时分子运动、温度与数密度联动。">
+<meta name="theme-color" content="#f2ecdf">
+<title>理想气体的压强公式 · 3D 交互推导</title>
+<style>
+  :root{
+    --paper:#f2ecdf;
+    --paper-2:#faf6ec;
+    --paper-3:#eee6d7;
+    --ink:#132b2e;
+    --ink-soft:#40585a;
+    --muted:#758482;
+    --faint:#9aa5a2;
+    --line:rgba(19,43,46,.14);
+    --line-soft:rgba(19,43,46,.085);
+    --line-strong:rgba(19,43,46,.28);
+    --teal:#0a6b61;
+    --teal-deep:#063e3d;
+    --teal-dark:#04282a;
+    --mint:#cfe6dc;
+    --aqua:#74e7d2;
+    --coral:#cc6244;
+    --coral-soft:#f2ded2;
+    --gold:#d7a04f;
+    --blue:#688fd0;
+    --stage:#04191f;
+    --stage-2:#082a2f;
+    --math:"Cambria Math","STIX Two Math","Latin Modern Math","Times New Roman",Georgia,serif;
+    --serif:"Source Han Serif SC","Noto Serif SC","Songti SC","STSong","SimSun",Georgia,serif;
+    --sans:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC","Noto Sans SC",Arial,sans-serif;
+    --mono:"Cascadia Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+    --radius:22px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    min-width:320px;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 8% -9%, rgba(255,255,255,.94) 0, rgba(255,255,255,0) 38%),
+      radial-gradient(circle at 97% 5%, rgba(200,228,218,.46) 0, rgba(200,228,218,0) 31%),
+      var(--paper);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(19,43,46,.034) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(19,43,46,.034) 1px, transparent 1px);
+    background-size:52px 52px;
+    mask-image:radial-gradient(ellipse 92% 78% at 50% 10%, #000 20%, transparent 82%);
+    -webkit-mask-image:radial-gradient(ellipse 92% 78% at 50% 10%, #000 20%, transparent 82%);
+  }
+  ::selection{background:var(--mint);color:var(--ink);}
+  button,input{font:inherit;}
+  button{color:inherit;}
+  button:focus-visible,input:focus-visible,[tabindex]:focus-visible{
+    outline:2px solid var(--coral);
+    outline-offset:3px;
+  }
+  .sr-only{
+    position:absolute!important;
+    width:1px;height:1px;
+    padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);
+    white-space:nowrap;border:0;
+  }
+  .shell{
+    position:relative;
+    z-index:1;
+    width:min(1480px,100%);
+    margin:0 auto;
+    padding:30px clamp(20px,3.6vw,52px) 34px;
+  }
+  .math{font-family:var(--math);font-style:normal;}
+  .muted{color:var(--muted);}
+  .ovl{
+    text-decoration:overline;
+    text-decoration-thickness:1px;
+    text-underline-offset:2px;
+  }
+  .frac{
+    display:inline-flex;
+    flex-direction:column;
+    justify-content:center;
+    vertical-align:-.34em;
+    min-width:1.03em;
+    margin:0 .1em;
+    font-size:.62em;
+    line-height:1.02;
+    text-align:center;
+    letter-spacing:0;
+  }
+  .frac > span:first-child{
+    padding:0 .13em .055em;
+    border-bottom:1px solid currentColor;
+  }
+  .frac > span:last-child{padding:.055em .13em 0;}
+  sub,sup{font-size:.62em;line-height:0;}
+
+  /* ---------------- masthead ---------------- */
+  .masthead{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 286px;
+    gap:44px;
+    align-items:end;
+    padding:8px 0 26px;
+    border-top:1px solid var(--line-strong);
+  }
+  .mast-copy{padding-top:20px;}
+  .kicker{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:0 0 17px;
+    color:var(--teal);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+  .kicker::before{
+    content:"";
+    width:30px;
+    height:1px;
+    background:var(--teal);
+  }
+  .kicker .kicker-en{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8.5px;
+    font-weight:400;
+    letter-spacing:.12em;
+  }
+  h1{
+    margin:0;
+    max-width:920px;
+    font-family:var(--serif);
+    font-size:clamp(44px,5.2vw,76px);
+    font-weight:600;
+    line-height:1.03;
+    letter-spacing:-.055em;
+  }
+  h1 .accent{
+    color:var(--teal);
+    position:relative;
+    white-space:nowrap;
+  }
+  h1 .accent::after{
+    content:"";
+    position:absolute;
+    left:2%;
+    right:1%;
+    bottom:.03em;
+    height:.075em;
+    border-radius:99px;
+    background:linear-gradient(90deg,var(--coral),rgba(204,98,68,0));
+    opacity:.72;
+  }
+  .dek{
+    max-width:800px;
+    margin:19px 0 0;
+    color:#526668;
+    font-size:16px;
+    line-height:1.92;
+  }
+  .dek b{color:var(--ink);font-weight:600;}
+  .dek .inline-eq{
+    display:inline-block;
+    margin:0 .15em;
+    color:var(--teal-deep);
+    font-family:var(--math);
+    font-size:1.12em;
+    white-space:nowrap;
+  }
+  .mast-side{
+    align-self:stretch;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:0 0 2px 24px;
+    border-left:1px solid var(--line);
+  }
+  .lesson-top{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .lesson-no{
+    color:var(--coral);
+    font-family:var(--serif);
+    font-size:64px;
+    font-weight:600;
+    line-height:.82;
+    letter-spacing:-.055em;
+  }
+  .lesson-kind{
+    padding-bottom:5px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.13em;
+    text-align:right;
+    line-height:1.55;
+  }
+  .lesson-name{
+    margin:15px 0 0;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:20px;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .lesson-sub{
+    margin:2px 0 0;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.55;
+  }
+  .mast-eq{
+    position:relative;
+    margin-top:17px;
+    padding:13px 14px 11px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:
+      linear-gradient(130deg,rgba(255,255,255,.58),rgba(255,255,255,.18)),
+      var(--paper-2);
+    color:var(--teal-deep);
+    font-family:var(--math);
+    font-size:23px;
+    line-height:1.2;
+    box-shadow:0 10px 24px -24px rgba(5,55,52,.55) inset;
+  }
+  .mast-eq small{
+    display:block;
+    margin-top:6px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.12em;
+  }
+
+  /* ---------------- workbench ---------------- */
+  .workbench{
+    display:grid;
+    grid-template-columns:minmax(0,1.16fr) minmax(480px,.84fr);
+    gap:20px;
+    align-items:stretch;
+    margin-top:27px;
+  }
+  .stage-card{
+    position:relative;
+    margin:0;
+    height:clamp(640px,72vh,800px);
+    min-width:0;
+    overflow:hidden;
+    border:1px solid rgba(123,218,203,.18);
+    border-radius:var(--radius);
+    background:
+      radial-gradient(ellipse at 52% 35%, #0d3c42 0%, #07282e 42%, #031a20 75%, #021317 100%);
+    box-shadow:
+      0 30px 60px -40px rgba(2,35,38,.86),
+      0 0 0 1px rgba(255,255,255,.035) inset,
+      0 1px 0 rgba(255,255,255,.07) inset;
+    isolation:isolate;
+    touch-action:none;
+  }
+  .stage-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(195,245,232,.032) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(195,245,232,.032) 1px,transparent 1px);
+    background-size:46px 46px;
+    mask-image:radial-gradient(ellipse 76% 76% at 50% 44%,#000 10%,transparent 76%);
+    -webkit-mask-image:radial-gradient(ellipse 76% 76% at 50% 44%,#000 10%,transparent 76%);
+    opacity:.72;
+  }
+  .stage-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:
+      linear-gradient(180deg,rgba(2,19,23,.45) 0%,transparent 20%,transparent 70%,rgba(2,19,23,.62) 100%),
+      radial-gradient(ellipse at 50% 48%,transparent 45%,rgba(1,12,16,.34) 100%);
+  }
+  #scene{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    width:100%;
+    height:100%;
+    display:block;
+    cursor:grab;
+    outline:none;
+  }
+  #scene.dragging{cursor:grabbing;}
+  #scene:focus-visible{outline:2px solid var(--aqua);outline-offset:-3px;}
+
+  .corner{
+    position:absolute;
+    z-index:4;
+    width:14px;
+    height:14px;
+    pointer-events:none;
+    border-color:rgba(137,232,215,.48);
+    border-style:solid;
+  }
+  .corner.tl{top:13px;left:13px;border-width:1px 0 0 1px;}
+  .corner.tr{top:13px;right:13px;border-width:1px 1px 0 0;}
+  .corner.bl{bottom:13px;left:13px;border-width:0 0 1px 1px;}
+  .corner.br{bottom:13px;right:13px;border-width:0 1px 1px 0;}
+
+  .scene-head{
+    position:absolute;
+    top:22px;
+    left:25px;
+    right:22px;
+    z-index:5;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+    pointer-events:none;
+  }
+  .scene-id{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+  }
+  .scene-index{
+    flex:0 0 auto;
+    color:var(--aqua);
+    font-family:var(--serif);
+    font-size:36px;
+    font-weight:600;
+    line-height:.9;
+    letter-spacing:-.06em;
+    text-shadow:0 0 22px rgba(116,231,210,.25);
+  }
+  .scene-name{
+    margin:0;
+    color:#eef5ec;
+    font-size:15px;
+    font-weight:600;
+    line-height:1.25;
+    letter-spacing:.025em;
+  }
+  .scene-sub{
+    margin:3px 0 0;
+    color:rgba(171,213,204,.58);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.15em;
+    line-height:1.4;
+  }
+  .scene-tools{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:4px;
+    border:1px solid rgba(180,235,224,.14);
+    border-radius:999px;
+    background:rgba(4,27,31,.58);
+    box-shadow:0 8px 24px -18px rgba(0,0,0,.7);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    pointer-events:auto;
+  }
+  .tool-btn{
+    display:inline-grid;
+    place-items:center;
+    width:31px;
+    height:31px;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:transparent;
+    color:rgba(214,241,234,.72);
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease,transform .18s ease;
+  }
+  .tool-btn:hover{background:rgba(132,231,213,.12);color:#f3fbf6;}
+  .tool-btn:active{transform:scale(.94);}
+  .tool-btn svg{width:15px;height:15px;display:block;}
+  .tool-btn.text{
+    width:auto;
+    min-width:36px;
+    padding:0 8px;
+    border-radius:999px;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.03em;
+  }
+  .tool-sep{width:1px;height:16px;background:rgba(187,233,224,.13);}
+
+  .scene-badge{
+    position:absolute;
+    top:88px;
+    left:26px;
+    z-index:5;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 8px 4px 7px;
+    border:1px solid rgba(120,229,209,.18);
+    border-radius:999px;
+    background:rgba(3,24,28,.44);
+    color:rgba(190,233,223,.7);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.1em;
+    pointer-events:none;
+    opacity:0;
+    transform:translateY(-3px);
+    transition:opacity .25s ease,transform .25s ease;
+  }
+  .scene-badge.show{opacity:1;transform:none;}
+  .scene-badge i{
+    width:4px;height:4px;border-radius:50%;
+    background:var(--aqua);
+    box-shadow:0 0 7px var(--aqua);
+    animation:pulseDot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseDot{0%,100%{opacity:.55;transform:scale(.8)}50%{opacity:1;transform:scale(1.18)}}
+
+  .stage-metrics{
+    position:absolute;
+    left:22px;
+    bottom:20px;
+    z-index:5;
+    display:flex;
+    align-items:stretch;
+    border:1px solid rgba(169,231,219,.14);
+    border-radius:12px;
+    background:rgba(3,24,28,.62);
+    box-shadow:0 12px 30px -24px rgba(0,0,0,.9);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .stage-metric{
+    padding:8px 12px 7px;
+    min-width:70px;
+  }
+  .stage-metric + .stage-metric{border-left:1px solid rgba(177,230,220,.1);}
+  .stage-metric span{
+    display:block;
+    color:rgba(162,210,201,.56);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.09em;
+    line-height:1.35;
+    white-space:nowrap;
+  }
+  .stage-metric strong{
+    display:inline-block;
+    margin-top:1px;
+    color:#edf7f1;
+    font-family:var(--math);
+    font-size:19px;
+    font-weight:500;
+    line-height:1;
+    letter-spacing:-.01em;
+    font-variant-numeric:tabular-nums;
+  }
+  .stage-metric small{
+    margin-left:2px;
+    color:rgba(169,211,202,.58);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.02em;
+  }
+  .stage-metric.pressure strong{color:#f4c687;}
+
+  .stage-legend{
+    position:absolute;
+    right:22px;
+    bottom:24px;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:rgba(170,211,202,.58);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.04em;
+    pointer-events:none;
+  }
+  .stage-legend .scale{
+    display:flex;
+    align-items:center;
+    gap:3px;
+  }
+  .stage-legend .scale i{
+    width:4px;height:4px;border-radius:50%;
+    background:var(--lc);
+    box-shadow:0 0 5px color-mix(in srgb,var(--lc) 65%,transparent);
+  }
+  .stage-legend .scale-line{
+    width:44px;
+    height:1px;
+    background:linear-gradient(90deg,rgba(102,219,201,.35),rgba(245,191,115,.8));
+  }
+  .stage-hint{
+    position:absolute;
+    left:50%;
+    bottom:23px;
+    z-index:5;
+    transform:translateX(-50%);
+    color:rgba(168,209,200,.48);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.04em;
+    white-space:nowrap;
+    pointer-events:none;
+  }
+
+  .mol-tip{
+    position:absolute;
+    z-index:9;
+    min-width:150px;
+    padding:8px 10px 7px;
+    border:1px solid rgba(126,233,213,.24);
+    border-radius:9px;
+    background:rgba(2,24,28,.92);
+    box-shadow:0 14px 34px -22px #000;
+    color:#eaf5ef;
+    font-size:10px;
+    line-height:1.45;
+    pointer-events:none;
+    opacity:0;
+    transform:translateY(4px);
+    transition:opacity .14s ease,transform .14s ease;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+  .mol-tip.show{opacity:1;transform:none;}
+  .mol-tip.locked{border-color:rgba(244,198,135,.5);}
+  .mol-tip .tip-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:4px;
+    color:var(--aqua);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.08em;
+  }
+  .mol-tip .tip-head b{color:#f2cc90;font-weight:500;}
+  .mol-tip .tip-row{
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    color:rgba(197,225,218,.7);
+    font-family:var(--mono);
+    font-size:8px;
+  }
+  .mol-tip .tip-row b{
+    color:#f2f8f3;
+    font-weight:500;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------------- derivation panel ---------------- */
+  .step-panel{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    height:clamp(640px,72vh,800px);
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:
+      radial-gradient(circle at 100% 0%, rgba(211,231,220,.48) 0, rgba(211,231,220,0) 34%),
+      var(--paper-2);
+    box-shadow:
+      0 24px 55px -46px rgba(5,55,52,.6),
+      0 1px 0 rgba(255,255,255,.72) inset;
+    position:relative;
+  }
+  .step-top{
+    flex:0 0 auto;
+    padding:22px 26px 15px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .step-top-line{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:12px;
+  }
+  .step-kicker{
+    color:var(--teal);
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.13em;
+  }
+  .step-total{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.08em;
+  }
+  .step-total b{color:var(--coral);font-weight:600;}
+  .step-dots{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:5px;
+  }
+  .step-dot{
+    position:relative;
+    height:28px;
+    padding:0;
+    border:1px solid rgba(19,43,46,.14);
+    border-radius:7px;
+    background:rgba(255,255,255,.24);
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.03em;
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s ease;
+  }
+  .step-dot:hover{border-color:rgba(10,107,97,.34);color:var(--teal);}
+  .step-dot[aria-current="step"]{
+    border-color:var(--teal);
+    background:var(--teal);
+    color:#f8f2e5;
+    box-shadow:0 6px 12px -10px rgba(5,55,52,.7);
+  }
+  .step-dot[aria-current="step"]::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:-9px;
+    width:4px;height:4px;
+    border-radius:50%;
+    background:var(--coral);
+    transform:translateX(-50%);
+  }
+  .step-scroll{
+    flex:1 1 auto;
+    min-height:0;
+    overflow:auto;
+    padding:24px 28px 6px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(10,107,97,.24) transparent;
+    display:flex;
+    flex-direction:column;
+  }
+  .step-scroll::-webkit-scrollbar{width:4px;}
+  .step-scroll::-webkit-scrollbar-thumb{background:rgba(10,107,97,.22);border-radius:99px;}
+  .step-body{
+    display:flex;
+    flex-direction:column;
+    flex:1 0 auto;
+    animation:stepIn .42s cubic-bezier(.2,.75,.25,1) both;
+  }
+  @keyframes stepIn{
+    from{opacity:0;transform:translateY(7px);}
+    to{opacity:1;transform:none;}
+  }
+  .step-meta{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .step-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:var(--coral);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+  }
+  .step-tag::before{
+    content:"";
+    width:12px;
+    height:1px;
+    background:var(--coral);
+  }
+  .step-body h2{
+    margin:0;
+    max-width:100%;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:clamp(29px,2.4vw,36px);
+    font-weight:600;
+    line-height:1.3;
+    letter-spacing:-.025em;
+  }
+  .step-lead{
+    margin:14px 0 0;
+    color:#506568;
+    font-size:16.2px;
+    line-height:1.9;
+  }
+  .step-lead b{color:var(--ink);font-weight:600;}
+  .step-points{
+    margin:19px 0 0;
+    padding:0;
+    list-style:none;
+    display:grid;
+    gap:11px;
+  }
+  .step-points li{
+    position:relative;
+    padding-left:19px;
+    color:#5a6e70;
+    font-size:14.4px;
+    line-height:1.8;
+  }
+  .step-points li::before{
+    content:"";
+    position:absolute;
+    left:2px;
+    top:.67em;
+    width:4px;
+    height:4px;
+    border:1px solid var(--teal);
+    transform:rotate(45deg);
+    opacity:.8;
+  }
+  .step-points b{color:var(--ink);font-weight:600;}
+  .eq-card{
+    position:relative;
+    margin-top:20px;
+    padding:20px 23px 18px;
+    overflow:hidden;
+    border-radius:12px;
+    background:
+      radial-gradient(circle at 100% -10%, rgba(244,198,135,.16) 0, rgba(244,198,135,0) 48%),
+      linear-gradient(145deg,#0a3d3a 0%,#062d2d 62%,#042526 100%);
+    box-shadow:
+      0 17px 28px -26px rgba(4,50,48,.9),
+      0 0 0 1px rgba(255,255,255,.055) inset;
+    color:#f1eadb;
+  }
+  .eq-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(199,244,232,.034) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(199,244,232,.034) 1px,transparent 1px);
+    background-size:24px 24px;
+    mask-image:linear-gradient(125deg,#000,transparent 78%);
+    -webkit-mask-image:linear-gradient(125deg,#000,transparent 78%);
+  }
+  .eq-card > *{position:relative;z-index:1;}
+  .eq-label{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:6px;
+    color:rgba(180,223,214,.56);
+    font-family:var(--mono);
+    font-size:7.6px;
+    letter-spacing:.12em;
+  }
+  .eq-label b{color:#f1c58c;font-weight:400;letter-spacing:.06em;}
+  .eq-lines{
+    color:#f5edde;
+    font-family:var(--math);
+    font-size:clamp(25px,2.08vw,31px);
+    line-height:1.36;
+  }
+  .eq-lines math{
+    display:inline-block;
+    margin:0;
+    color:inherit;
+    font-family:var(--math);
+    font-size:1em;
+    text-align:left;
+  }
+  .eq-lines > math[display="block"]{display:block;}
+  .eq-grid{
+    display:grid;
+    grid-template-columns:max-content 1.2em minmax(0,1fr);
+    column-gap:.42em;
+    row-gap:.42em;
+    align-items:baseline;
+    margin:.1em 0;
+  }
+  .eq-grow{display:contents;}
+  .eq-gl{justify-self:end;text-align:right;white-space:nowrap;}
+  .eq-gr{justify-self:center;text-align:center;}
+  .eq-gv{justify-self:start;text-align:left;min-width:0;}
+  .eq-grid math{display:inline-block;}
+  .eq-grid.eq-compact{font-size:.88em;row-gap:.18em;}
+  .eq-grid.eq-tight{font-size:.84em;row-gap:.13em;}
+  .eq-grid mfrac{color:#f1c58c;}
+  .eq-subhead{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:.4em 0 .08em;
+    color:rgba(183,221,212,.68);
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.08em;
+  }
+  .eq-subhead:not(:first-child){
+    margin-top:.5em;
+    padding-top:.38em;
+    border-top:1px solid rgba(255,255,255,.1);
+  }
+  .eq-subhead b{
+    color:#f1c58c;
+    font-weight:500;
+  }
+  .eq-lines munder{font-size:1.3em;line-height:1.08;vertical-align:-.04em;}
+  .eq-lines munder > mi{font-size:.54em;}
+  .chain-formula math{
+    display:inline-block;
+    vertical-align:middle;
+    color:inherit;
+    font-family:var(--math);
+    font-size:19px;
+    line-height:1;
+  }
+  .result-eq math{
+    display:block;
+    margin:0;
+    color:inherit;
+    font-family:var(--math);
+    font-size:1em;
+    text-align:left;
+  }
+  .mast-eq math{
+    display:inline-block;
+    vertical-align:middle;
+    color:inherit;
+    font-family:var(--math);
+    font-size:1em;
+  }
+  .modal-eq math{
+    display:block;
+    margin:0;
+    color:inherit;
+    font-family:var(--math);
+    font-size:1em;
+    text-align:left;
+  }
+  .eq-line{white-space:nowrap;}
+  .eq-line + .eq-line{margin-top:5px;}
+  .eq-line.accent{color:#9be7d6;}
+  .eq-line.hero{
+    font-size:1.2em;
+    color:#f5edde;
+  }
+  .eq-line.hero .frac{color:#f1c58c;}
+  .eq-line.small{
+    font-size:.7em;
+    color:rgba(225,240,233,.76);
+    white-space:normal;
+  }
+  .eq-card .ovl{text-decoration-color:rgba(244,198,135,.72);}
+  .eq-card .eps{color:#f1c58c;font-style:italic;}
+  .eq-foot{
+    margin-top:10px;
+    padding-top:9px;
+    border-top:1px solid rgba(255,255,255,.09);
+    color:rgba(184,220,211,.68);
+    font-size:12px;
+    line-height:1.65;
+  }
+  .step-note{
+    margin:16px 0 0;
+    padding:12px 14px;
+    border-left:2px solid var(--coral);
+    border-radius:0 7px 7px 0;
+    background:rgba(212,231,221,.34);
+    color:#5d7071;
+    font-size:13px;
+    line-height:1.75;
+  }
+  .step-note b{
+    margin-right:6px;
+    color:var(--coral);
+    font-family:var(--mono);
+    font-size:8px;
+    font-weight:600;
+    letter-spacing:.08em;
+  }
+  .live-lab{
+    flex:0 0 auto;
+    padding:10px 24px 7px;
+    border-top:1px solid var(--line-soft);
+    background:linear-gradient(180deg,rgba(238,246,238,.1),rgba(235,242,232,.34));
+  }
+  body[data-step="5"] .live-lab,
+  body[data-step="7"] .live-lab{display:none;}
+  .live-lab-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:6.8px;
+    letter-spacing:.09em;
+  }
+  .live-lab-head b{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    color:var(--teal);
+    font-size:7px;
+    font-weight:500;
+    letter-spacing:.02em;
+  }
+  .live-lab-head b i{
+    width:4px;height:4px;border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 6px rgba(10,107,97,.5);
+  }
+  .live-lab-grid{
+    display:grid;
+    grid-template-columns:1.12fr .96fr .9fr;
+    gap:0;
+    margin-top:5px;
+  }
+  .live-lab-grid > div{
+    min-width:0;
+    padding-right:9px;
+  }
+  .live-lab-grid > div + div{
+    padding-left:11px;
+    border-left:1px solid var(--line-soft);
+  }
+  .live-lab-grid span{
+    display:block;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.04em;
+    line-height:1.3;
+  }
+  .live-lab-grid strong{
+    display:inline-block;
+    margin-top:1px;
+    color:var(--ink);
+    font-family:var(--math);
+    font-size:17px;
+    font-weight:500;
+    line-height:1.1;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .live-lab-grid > div:first-child strong{color:var(--coral);}
+  .live-lab-grid small{
+    margin-left:2px;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:6.3px;
+    white-space:nowrap;
+  }
+  .lab-gauge{
+    height:3px;
+    margin-top:7px;
+    overflow:hidden;
+    border-radius:99px;
+    background:rgba(19,43,46,.09);
+  }
+  .lab-gauge span{
+    display:block;
+    height:100%;
+    width:34%;
+    border-radius:inherit;
+    background:linear-gradient(90deg,var(--teal),var(--gold),var(--coral));
+    transition:width .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .live-lab-foot{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:5px;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:6.4px;
+    line-height:1.4;
+  }
+  .live-lab-foot b{color:var(--ink-soft);font-weight:500;}
+  .step-nav{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 26px 16px;
+    border-top:1px solid var(--line-soft);
+    background:linear-gradient(180deg,rgba(250,246,236,0),rgba(250,246,236,.76));
+  }
+  .nav-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-height:33px;
+    padding:0 12px;
+    border:1px solid var(--line);
+    border-radius:99px;
+    background:rgba(255,255,255,.4);
+    color:var(--ink-soft);
+    font-size:11px;
+    cursor:pointer;
+    transition:border-color .2s ease,background .2s ease,color .2s ease,transform .2s ease;
+  }
+  .nav-btn:hover:not(:disabled){border-color:rgba(10,107,97,.4);background:#fffdf8;color:var(--teal);}
+  .nav-btn:active:not(:disabled){transform:translateY(1px);}
+  .nav-btn:disabled{opacity:.36;cursor:not-allowed;}
+  .nav-btn svg{width:12px;height:12px;}
+  .nav-btn.next{
+    border-color:var(--teal);
+    background:var(--teal);
+    color:#fbf7ec;
+  }
+  .nav-btn.next:hover:not(:disabled){background:var(--teal-deep);border-color:var(--teal-deep);color:#fffdf6;}
+  .nav-progress{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.08em;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------------- control strip ---------------- */
+  .control-card{
+    position:relative;
+    margin-top:16px;
+    padding:21px 24px 21px;
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:20px;
+    background:
+      radial-gradient(circle at 4% -20%, rgba(255,255,255,.7) 0, rgba(255,255,255,0) 32%),
+      linear-gradient(115deg,rgba(250,246,236,.94),rgba(246,240,228,.9));
+    box-shadow:0 20px 45px -46px rgba(7,55,52,.65),0 1px 0 rgba(255,255,255,.8) inset;
+  }
+  .control-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:22px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .control-title p{
+    margin:0 0 3px;
+    color:var(--teal);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.14em;
+  }
+  .control-title h2{
+    margin:0;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:20px;
+    font-weight:600;
+    letter-spacing:-.01em;
+  }
+  .control-actions{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .mode-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    height:31px;
+    padding:0 11px;
+    border:1px solid var(--line);
+    border-radius:99px;
+    background:rgba(255,255,255,.42);
+    color:var(--ink-soft);
+    font-size:9.5px;
+    cursor:pointer;
+    transition:background .2s ease,border-color .2s ease,color .2s ease;
+  }
+  .mode-btn:hover{border-color:rgba(10,107,97,.35);background:#fffdf8;}
+  .mode-btn svg{width:13px;height:13px;}
+  .mode-btn.primary{
+    border-color:var(--teal-deep);
+    background:var(--teal-deep);
+    color:#f7f0e2;
+  }
+  .mode-btn.primary:hover{background:#032f2f;}
+  .control-grid{
+    display:grid;
+    grid-template-columns:1.08fr 1.08fr .86fr 1.12fr;
+    gap:25px;
+    align-items:stretch;
+    padding-top:15px;
+  }
+  .slider-block{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:0;
+  }
+  .slider-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:9px;
+  }
+  .slider-name{
+    color:var(--ink-soft);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .slider-name small{
+    display:block;
+    margin-top:1px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7px;
+    font-weight:400;
+    letter-spacing:.1em;
+  }
+  .slider-value{
+    color:var(--coral);
+    font-family:var(--math);
+    font-size:20px;
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .slider-value span{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.03em;
+  }
+  .slider-scale{
+    display:flex;
+    justify-content:space-between;
+    margin-top:5px;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.04em;
+  }
+  input[type="range"]{
+    --fill:50%;
+    display:block;
+    width:100%;
+    height:18px;
+    margin:0;
+    padding:0;
+    border:0;
+    outline:none;
+    background:transparent;
+    -webkit-appearance:none;
+    appearance:none;
+    cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    width:100%;
+    height:4px;
+    border-radius:99px;
+    background:linear-gradient(90deg,var(--teal) 0 var(--fill),rgba(19,43,46,.13) var(--fill) 100%);
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:15px;
+    height:15px;
+    margin-top:-5.5px;
+    border:2px solid var(--paper-2);
+    border-radius:50%;
+    background:var(--coral);
+    box-shadow:0 0 0 1px rgba(204,98,68,.35),0 4px 9px -4px rgba(70,30,20,.48);
+  }
+  input[type="range"]::-moz-range-track{
+    height:4px;
+    border-radius:99px;
+    background:rgba(19,43,46,.13);
+  }
+  input[type="range"]::-moz-range-progress{
+    height:4px;
+    border-radius:99px;
+    background:var(--teal);
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:13px;height:13px;
+    border:2px solid var(--paper-2);
+    border-radius:50%;
+    background:var(--coral);
+    box-shadow:0 0 0 1px rgba(204,98,68,.35);
+  }
+  .live-block{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:0;
+    padding-left:22px;
+    border-left:1px solid var(--line-soft);
+  }
+  .live-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.1em;
+  }
+  .live-head b{color:var(--teal);font-weight:500;}
+  .pressure-line{
+    display:flex;
+    align-items:baseline;
+    gap:4px;
+    margin-top:4px;
+    color:var(--ink);
+  }
+  .pressure-line strong{
+    font-family:var(--math);
+    font-size:31px;
+    font-weight:500;
+    line-height:1;
+    letter-spacing:-.035em;
+    font-variant-numeric:tabular-nums;
+  }
+  .pressure-line small{
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:8px;
+  }
+  .gauge{
+    height:4px;
+    margin-top:8px;
+    overflow:hidden;
+    border-radius:99px;
+    background:rgba(19,43,46,.11);
+  }
+  .gauge span{
+    display:block;
+    width:34%;
+    height:100%;
+    border-radius:inherit;
+    background:linear-gradient(90deg,var(--teal),var(--gold),var(--coral));
+    transition:width .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .live-sub{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:6px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7.5px;
+    line-height:1.45;
+  }
+  .live-sub b{color:var(--ink-soft);font-weight:500;}
+  .dist-block{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:0;
+    padding-left:22px;
+    border-left:1px solid var(--line-soft);
+  }
+  .dist-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.08em;
+  }
+  .dist-head b{color:var(--teal);font-weight:500;}
+  #distChart{
+    display:block;
+    width:100%;
+    height:56px;
+    margin-top:4px;
+  }
+  .dist-foot{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    color:var(--faint);
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.03em;
+  }
+
+  /* ---------------- at a glance ---------------- */
+  .glance{
+    margin-top:44px;
+  }
+  .section-heading{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    padding-bottom:13px;
+    border-bottom:1px solid var(--line-strong);
+  }
+  .section-heading .eyebrow{
+    margin:0 0 5px;
+    color:var(--teal);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.14em;
+  }
+  .section-heading h2{
+    margin:0;
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:clamp(24px,2.4vw,32px);
+    font-weight:600;
+    line-height:1.2;
+    letter-spacing:-.03em;
+  }
+  .section-heading p{
+    max-width:430px;
+    margin:0 0 3px;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.65;
+    text-align:right;
+  }
+  .chain{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:26px;
+    margin-top:16px;
+  }
+  .chain-card{
+    position:relative;
+    min-width:0;
+    padding:15px 15px 13px;
+    border:1px solid var(--line);
+    border-radius:13px;
+    background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(255,255,255,.18));
+    box-shadow:0 12px 22px -26px rgba(6,55,51,.5);
+  }
+  .chain-card:not(:last-child)::after{
+    content:"→";
+    position:absolute;
+    right:-20px;
+    top:50%;
+    color:rgba(10,107,97,.38);
+    font-family:var(--serif);
+    font-size:18px;
+    transform:translateY(-50%);
+  }
+  .chain-no{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    color:var(--coral);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.08em;
+  }
+  .chain-no small{color:var(--faint);font-size:6.5px;letter-spacing:.03em;}
+  .chain-formula{
+    min-height:31px;
+    margin-top:9px;
+    color:var(--teal-deep);
+    font-family:var(--math);
+    font-size:19px;
+    line-height:1.16;
+    white-space:nowrap;
+  }
+  .chain-formula .frac{color:var(--coral);}
+  .chain-formula mfrac{color:var(--coral);}
+  .chain-caption{
+    margin:7px 0 0;
+    color:var(--muted);
+    font-size:9.5px;
+    line-height:1.55;
+  }
+
+  /* ---------------- result ---------------- */
+  .result{
+    display:grid;
+    grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);
+    gap:30px;
+    margin-top:39px;
+    padding:29px 32px 30px;
+    overflow:hidden;
+    border-radius:22px;
+    background:
+      radial-gradient(circle at 96% 0%, rgba(226,165,91,.19) 0, rgba(226,165,91,0) 34%),
+      radial-gradient(circle at 7% 100%, rgba(97,204,181,.13) 0, rgba(97,204,181,0) 37%),
+      linear-gradient(145deg,#0a3d3b 0%,#052c2d 58%,#031f23 100%);
+    box-shadow:0 28px 52px -44px rgba(4,45,43,.9),0 0 0 1px rgba(255,255,255,.06) inset;
+    color:#eef4ea;
+  }
+  .result-left{min-width:0;}
+  .result .eyebrow{
+    margin:0;
+    color:#f1c58c;
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.14em;
+  }
+  .result h2{
+    margin:8px 0 0;
+    color:#f7f0e1;
+    font-family:var(--serif);
+    font-size:clamp(25px,2.3vw,34px);
+    font-weight:600;
+    line-height:1.22;
+    letter-spacing:-.025em;
+  }
+  .result-eq{
+    display:block;
+    margin-top:18px;
+    color:#f8f0df;
+    font-family:var(--math);
+    font-size:clamp(34px,3.6vw,52px);
+    line-height:1.08;
+    letter-spacing:-.025em;
+  }
+  .result-eq mfrac{color:#f1c58c;}
+  .result-eq .frac{color:#f1c58c;font-size:.56em;}
+  .result-eq .eps{color:#9be7d6;font-style:italic;}
+  .result-eq .ovl{text-decoration-color:rgba(241,197,140,.62);}
+  .result-eq small{
+    color:rgba(183,220,211,.55);
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.08em;
+  }
+  .result-sub{
+    margin:15px 0 0;
+    color:rgba(207,231,224,.76);
+    font-size:14.5px;
+    line-height:1.85;
+  }
+  .result-sub b{color:#f1c58c;font-weight:500;}
+  .result-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:16px;
+  }
+  .result-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:6px 10px;
+    border:1px solid rgba(175,232,221,.18);
+    border-radius:99px;
+    color:rgba(214,238,231,.76);
+    font-family:var(--mono);
+    font-size:9.2px;
+    letter-spacing:.04em;
+  }
+  .result-tag i{width:3px;height:3px;border-radius:50%;background:var(--aqua);}
+  .result-right{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:17px;
+    padding-left:32px;
+    border-left:1px solid rgba(204,240,231,.12);
+  }
+  .insight{
+    display:grid;
+    grid-template-columns:38px minmax(0,1fr);
+    gap:14px;
+    align-items:start;
+  }
+  .insight-num{
+    display:grid;
+    place-items:center;
+    width:34px;
+    height:34px;
+    border:1px solid rgba(242,197,140,.4);
+    border-radius:50%;
+    color:#f1c58c;
+    font-family:var(--mono);
+    font-size:9px;
+  }
+  .insight b{
+    display:block;
+    margin-bottom:5px;
+    color:#f2ebdc;
+    font-size:16px;
+    font-weight:600;
+    line-height:1.4;
+  }
+  .insight p{
+    margin:0;
+    color:rgba(208,232,224,.72);
+    font-size:13.5px;
+    line-height:1.8;
+  }
+  .insight p i{color:#9be7d6;font-family:var(--math);font-style:italic;}
+
+  /* ---------------- quiz ---------------- */
+  .quiz{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:18px 26px;
+    align-items:center;
+    margin-top:15px;
+    padding:18px 21px;
+    border:1px solid var(--line);
+    border-radius:15px;
+    background:rgba(250,246,236,.63);
+  }
+  .quiz p{
+    margin:0;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.1em;
+  }
+  .quiz h3{
+    margin:4px 0 0;
+    color:var(--ink);
+    font-size:13.5px;
+    font-weight:600;
+    line-height:1.55;
+  }
+  .quiz-options{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:6px;
+  }
+  .quiz-option{
+    min-height:31px;
+    padding:0 10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:rgba(255,255,255,.38);
+    color:var(--ink-soft);
+    font-size:9.5px;
+    cursor:pointer;
+    transition:border-color .18s ease,background .18s ease,color .18s ease;
+  }
+  .quiz-option:hover{border-color:rgba(10,107,97,.36);background:#fffdf8;}
+  .quiz-option.correct{border-color:rgba(10,107,97,.42);background:rgba(207,230,220,.62);color:var(--teal-deep);}
+  .quiz-option.wrong{border-color:rgba(204,98,68,.42);background:rgba(242,222,210,.62);color:#8c3e2a;}
+  .quiz-feedback{
+    grid-column:1 / -1;
+    min-height:0;
+    margin:0!important;
+    color:var(--teal)!important;
+    font-family:var(--sans)!important;
+    font-size:10.5px!important;
+    line-height:1.6!important;
+    letter-spacing:0!important;
+  }
+  .quiz-feedback:empty{display:none;}
+
+  /* ---------------- footer ---------------- */
+  .footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    margin-top:23px;
+    padding-top:13px;
+    border-top:1px solid var(--line);
+    color:var(--muted);
+    font-size:9px;
+    letter-spacing:.02em;
+  }
+  .footer b{color:var(--ink-soft);font-weight:600;}
+  .footer .keys{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:9px;
+  }
+  .key{display:inline-flex;align-items:center;gap:4px;}
+  kbd{
+    display:inline-grid;
+    place-items:center;
+    min-width:17px;
+    height:17px;
+    padding:0 4px;
+    border:1px solid var(--line);
+    border-bottom-color:var(--line-strong);
+    border-radius:4px;
+    background:rgba(255,255,255,.35);
+    color:var(--ink-soft);
+    font-family:var(--mono);
+    font-size:7.5px;
+    line-height:1;
+  }
+
+  /* ---------------- modal ---------------- */
+  dialog{
+    width:min(560px,calc(100vw - 32px));
+    max-height:min(76vh,620px);
+    padding:0;
+    overflow:auto;
+    border:1px solid var(--line-strong);
+    border-radius:18px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(207,230,220,.48) 0, rgba(207,230,220,0) 35%),
+      var(--paper-2);
+    box-shadow:0 35px 80px -30px rgba(2,36,34,.55);
+    color:var(--ink);
+  }
+  dialog::backdrop{
+    background:rgba(3,24,27,.44);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+  }
+  .modal-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    padding:22px 24px 13px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .modal-head .eyebrow{
+    margin:0 0 4px;
+    color:var(--teal);
+    font-family:var(--mono);
+    font-size:7px;
+    letter-spacing:.13em;
+  }
+  .modal-head h2{
+    margin:0;
+    font-family:var(--serif);
+    font-size:24px;
+    font-weight:600;
+    letter-spacing:-.02em;
+  }
+  .modal-close{
+    display:grid;
+    place-items:center;
+    width:29px;
+    height:29px;
+    padding:0;
+    border:1px solid var(--line);
+    border-radius:50%;
+    background:transparent;
+    cursor:pointer;
+    color:var(--muted);
+  }
+  .modal-close:hover{background:rgba(19,43,46,.06);color:var(--ink);}
+  .modal-body{padding:17px 24px 22px;}
+  .assumption{
+    display:grid;
+    grid-template-columns:23px minmax(0,1fr);
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .assumption:last-child{border-bottom:0;}
+  .assumption span{
+    display:grid;
+    place-items:center;
+    width:21px;
+    height:21px;
+    border:1px solid rgba(10,107,97,.26);
+    border-radius:50%;
+    color:var(--teal);
+    font-family:var(--mono);
+    font-size:7px;
+  }
+  .assumption b{display:block;color:var(--ink);font-size:11.5px;font-weight:600;}
+  .assumption p{margin:2px 0 0;color:var(--muted);font-size:10.5px;line-height:1.65;}
+  .modal-eq{
+    margin-top:13px;
+    padding:10px 12px;
+    border-radius:9px;
+    background:rgba(207,230,220,.38);
+    color:var(--teal-deep);
+    font-family:var(--math);
+    font-size:17px;
+    line-height:1.4;
+  }
+
+  /* ---------------- responsive ---------------- */
+  @media (max-width:1180px){
+    .masthead{grid-template-columns:minmax(0,1fr) 270px;gap:30px;}
+    .workbench{grid-template-columns:minmax(0,1fr) 370px;}
+    .scene-hint,.stage-hint{display:none;}
+    .control-grid{grid-template-columns:1fr 1fr .9fr;gap:22px;}
+    .dist-block{grid-column:1 / -1;padding:10px 0 0;border-left:0;border-top:1px solid var(--line-soft);}
+    #distChart{height:48px;}
+    .section-heading p{max-width:320px;}
+  }
+  @media (max-width:1200px){
+    .workbench{grid-template-columns:1fr;gap:12px;}
+    .stage-card{height:540px;}
+    .step-panel{height:auto;max-height:none;}
+    .step-scroll{overflow:visible;}
+    .step-body h2{max-width:none;}
+    .live-lab{margin-top:0;padding:12px 17px 8px;}
+    .step-points{grid-template-columns:1fr 1fr;}
+    .result{grid-template-columns:1fr;gap:22px;}
+    .result-right{padding:20px 0 0;border-left:0;border-top:1px solid rgba(204,240,231,.12);display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+    .chain{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .chain-card:not(:last-child)::after{display:none;}
+  }
+  @media (max-width:760px){
+    .shell{padding:19px 17px 25px;}
+    .masthead{grid-template-columns:1fr;gap:20px;padding-bottom:21px;}
+    .mast-copy{padding-top:16px;}
+    h1{font-size:clamp(42px,11vw,60px);}
+    .dek{font-size:14px;margin-top:14px;line-height:1.85;}
+    .mast-side{
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      gap:0 16px;
+      padding:14px 0 0;
+      border-left:0;
+      border-top:1px solid var(--line);
+    }
+    .lesson-top{display:contents;}
+    .lesson-no{grid-row:1 / span 3;font-size:48px;line-height:.9;}
+    .lesson-kind{display:none;}
+    .lesson-name{margin:0;align-self:end;font-size:17px;}
+    .lesson-sub{margin:1px 0 0;font-size:9.5px;}
+    .mast-eq{display:none;}
+    .workbench{margin-top:20px;}
+    .stage-card{height:470px;border-radius:18px;}
+    .scene-head{top:17px;left:17px;right:14px;}
+    .scene-index{font-size:29px;}
+    .scene-name{font-size:13.5px;}
+    .scene-sub{font-size:6.8px;letter-spacing:.1em;}
+    .scene-tools{gap:3px;padding:3px;}
+    .tool-btn{width:28px;height:28px;}
+    .tool-btn.text{min-width:31px;font-size:8px;}
+    .stage-metrics{left:13px;bottom:13px;}
+    .stage-metric{padding:7px 9px 6px;min-width:61px;}
+    .stage-metric strong{font-size:16px;}
+    .stage-metric span{font-size:6px;}
+    .stage-legend{display:none;}
+    .scene-badge{top:70px;left:17px;font-size:6.6px;}
+    .step-panel{border-radius:18px;}
+    .step-top{padding:15px 17px 11px;}
+    .step-scroll{padding:17px 17px 2px;}
+    .step-body h2{font-size:26px;}
+    .step-lead{font-size:12.7px;}
+    .step-points{grid-template-columns:1fr;gap:6px;}
+    .step-points li{font-size:11.4px;}
+    .eq-card{padding:12px 13px 10px;}
+    .eq-lines{font-size:19px;}
+    .step-nav{padding:10px 17px 13px;}
+    .control-card{padding:17px 16px 16px;border-radius:16px;}
+    .control-head{align-items:flex-start;flex-direction:column;gap:11px;}
+    .control-actions{justify-content:flex-start;}
+    .control-grid{grid-template-columns:1fr 1fr;gap:16px 20px;}
+    .live-block{padding-left:0;border-left:0;border-top:1px solid var(--line-soft);padding-top:12px;}
+    .dist-block{grid-column:1 / -1;}
+    .glance{margin-top:31px;}
+    .section-heading{align-items:flex-start;flex-direction:column;gap:6px;}
+    .section-heading p{text-align:left;max-width:none;}
+    .chain{
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:212px;
+      grid-template-columns:none;
+      gap:10px;
+      overflow-x:auto;
+      padding-bottom:8px;
+      scrollbar-width:thin;
+      scroll-snap-type:x proximity;
+    }
+    .chain-card{padding:13px 13px 12px;scroll-snap-align:start;}
+    .result{margin-top:27px;padding:22px 19px 21px;border-radius:18px;}
+    .result-right{grid-template-columns:1fr;}
+    .result h2{font-size:26px;}
+    .result-eq{font-size:37px;}
+    .quiz{grid-template-columns:1fr;padding:16px;}
+    .quiz-options{justify-content:flex-start;}
+    .footer{align-items:flex-start;flex-direction:column;gap:8px;}
+    .footer .keys{justify-content:flex-start;}
+  }
+  @media (max-width:520px){
+    .shell{padding:14px 12px 22px;}
+    h1{font-size:clamp(37px,12vw,48px);}
+    .kicker{font-size:9px;gap:7px;letter-spacing:.1em;}
+    .kicker::before{width:18px;}
+    .kicker .kicker-en{display:none;}
+    .dek{font-size:12.7px;}
+    .stage-card{height:420px;}
+    .scene-id{gap:8px;}
+    .scene-index{font-size:25px;}
+    .scene-name{font-size:12.5px;}
+    .scene-sub{display:none;}
+    .scene-tools .tool-btn[data-optional="true"]{display:none;}
+    .stage-metrics{left:10px;bottom:10px;border-radius:10px;}
+    .stage-metric{padding:6px 7px 5px;min-width:52px;}
+    .stage-metric strong{font-size:14px;}
+    .stage-metric small{font-size:6px;}
+    .stage-metric span{font-size:5.6px;letter-spacing:.04em;}
+    .step-body h2{font-size:23px;}
+    .step-dots{gap:3px;}
+    .step-dot{height:23px;border-radius:6px;font-size:7px;}
+    .eq-lines{font-size:17px;}
+    .eq-line.hero{font-size:1.12em;}
+    .control-grid{grid-template-columns:1fr;}
+    .dist-block{padding-top:10px;}
+    .live-block{padding-top:10px;}
+    .section-heading h2{font-size:23px;}
+    .chain{grid-auto-columns:196px;}
+    .result-eq{font-size:31px;}
+    .result-eq small{display:none;}
+    .quiz h3{font-size:12.5px;}
+    .footer{font-size:8px;}
+  }
+  @media (max-height:1000px) and (min-width:1201px){
+    .live-lab{display:none;}
+    .step-scroll{padding-bottom:8px;}
+    .step-lead{font-size:12.8px;line-height:1.74;}
+    .step-points li{font-size:11.2px;line-height:1.6;}
+    .eq-card{padding:11px 14px 10px;}
+    .eq-lines{font-size:19px;}
+    .step-note{padding:7px 9px;font-size:9.5px;line-height:1.55;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{
+      animation-duration:.001ms!important;
+      animation-iteration-count:1!important;
+      transition-duration:.001ms!important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="masthead">
+    <div class="mast-copy">
+      <div class="kicker">
+        <span>大学物理</span><span>第十二章 · 气体动理论</span><span class="kicker-en">3D INTERACTIVE DERIVATION</span>
+      </div>
+      <h1>理想气体的<span class="accent">压强公式</span></h1>
+      <p class="dek">
+        从一次分子碰撞的冲量，到 <b>10²³</b> 个分子共同写下的统计结果。拖动 3D 容器旋转视角，调节温度与分子数密度，跟随七个步骤推出
+        <span class="inline-eq"><math display="inline"><mrow><mi>P</mi><mo>=</mo><mfrac><mn>1</mn><mn>3</mn></mfrac><mi>n</mi><mi>m</mi><mover accent="true"><msup><mi>v</mi><mn>2</mn></msup><mo>¯</mo></mover></mrow></math></span>。
+      </p>
+    </div>
+    <aside class="mast-side" aria-label="课程信息">
+      <div class="lesson-top">
+        <div class="lesson-no">12.3</div>
+        <div class="lesson-kind">第三讲<br>IDEAL GAS<br>PRESSURE</div>
+      </div>
+      <p class="lesson-name">理想气体的压强公式</p>
+      <p class="lesson-sub">从微观碰撞到宏观压强 · 七步交互推导</p>
+      <div class="mast-eq">
+        <math display="inline"><mrow><mi>P</mi><mo>=</mo><mfrac><mn>1</mn><mn>3</mn></mfrac><mi>n</mi><mi>m</mi><mover accent="true"><msup><mi>v</mi><mn>2</mn></msup><mo>¯</mo></mover></mrow></math>
+        <small>MICRO TO MACRO · KINETIC THEORY</small>
+      </div>
+    </aside>
+  </header>
+
+  <main>
+    <section class="workbench" aria-label="理想气体压强公式三维交互演示">
+      <figure class="stage-card" id="stageCard">
+        <canvas id="scene" tabindex="0" role="img" aria-label="可拖动旋转的三维气体容器。分子在容器内运动并不断碰撞右侧器壁，碰撞处产生冲量波纹。"></canvas>
+        <span class="corner tl" aria-hidden="true"></span>
+        <span class="corner tr" aria-hidden="true"></span>
+        <span class="corner bl" aria-hidden="true"></span>
+        <span class="corner br" aria-hidden="true"></span>
+
+        <div class="scene-head">
+          <div class="scene-id">
+            <span class="scene-index" id="sceneIndex">01</span>
+            <div>
+              <h2 class="scene-name" id="sceneName">微观模型</h2>
+              <p class="scene-sub" id="sceneSub">KINETIC MODEL · N MOLECULES</p>
+            </div>
+          </div>
+          <div class="scene-tools" aria-label="三维场景控制">
+            <button class="tool-btn" id="playBtn" type="button" aria-label="暂停分子运动" title="暂停 / 播放（Space）">
+              <svg class="ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.6" height="14" rx="1"/><rect x="13.4" y="5" width="3.6" height="14" rx="1"/></svg>
+              <svg class="ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M8 5.2v13.6L19 12z"/></svg>
+            </button>
+            <button class="tool-btn text" id="speedBtn" type="button" aria-label="切换演示速度" title="演示速度">1×</button>
+            <span class="tool-sep" aria-hidden="true"></span>
+            <button class="tool-btn" id="resetViewBtn" type="button" aria-label="重置三维视角" title="重置视角（R）">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4.8 9.2A8 8 0 1 1 4 14"/><path d="M4.5 4.8v4.7h4.7"/></svg>
+            </button>
+            <button class="tool-btn" id="fullBtn" type="button" aria-label="全屏查看" title="全屏" data-optional="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M20 9V4h-5M4 15v5h5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="scene-badge" id="fluxBadge"><i></i><span>只突出 vₓ &gt; 0 的分子</span></div>
+
+        <div class="stage-metrics" aria-label="实时物理量">
+          <div class="stage-metric pressure">
+            <span>压强 P</span>
+            <strong id="hudP">103.5</strong><small>kPa</small>
+          </div>
+          <div class="stage-metric">
+            <span>方均根速率 v<sub>rms</sub></span>
+            <strong id="hudV">517</strong><small>m/s</small>
+          </div>
+          <div class="stage-metric">
+            <span>右壁碰撞 / s</span>
+            <strong id="hudHits">0</strong><small>次</small>
+          </div>
+        </div>
+
+        <div class="stage-legend" aria-hidden="true">
+          <span class="scale">
+            <i style="--lc:#63d8c6"></i><span class="scale-line"></span><i style="--lc:#f0ad72"></i>
+          </span>
+          <span>慢 → 快</span>
+          <span>·</span>
+          <span>拖动旋转 / 滚轮缩放</span>
+        </div>
+        <div class="stage-hint" id="stageHint">拖动旋转 · 滚轮缩放 · 点击分子查看速度</div>
+
+        <div class="mol-tip" id="molTip" aria-hidden="true">
+          <div class="tip-head"><span id="tipId">MOLECULE #000</span><b id="tipLock">HOVER</b></div>
+          <div class="tip-row"><span>vₓ</span><b id="tipVx">+0 m/s</b></div>
+          <div class="tip-row"><span>v<sub>y</sub></span><b id="tipVy">+0 m/s</b></div>
+          <div class="tip-row"><span>v<sub>z</sub></span><b id="tipVz">+0 m/s</b></div>
+        </div>
+
+        <figcaption class="sr-only">
+          三维长方体容器内有大量理想气体分子。分子在三个方向上运动，与器壁发生完全弹性碰撞。调节温度可以改变分子平均速率，调节分子数密度可以改变分子数量与压强。鼠标拖动旋转视角，滚轮缩放，点击分子可以查看其速度分量。
+        </figcaption>
+      </figure>
+
+      <aside class="step-panel" aria-label="压强公式七步推导">
+        <div class="step-top">
+          <div class="step-top-line">
+            <span class="step-kicker">DERIVATION · 07 STEPS</span>
+            <span class="step-total"><b id="stepNow">01</b> / 07</span>
+          </div>
+          <div class="step-dots" id="stepDots" role="tablist" aria-label="推导步骤"></div>
+        </div>
+        <div class="step-scroll" id="stepScroll">
+          <div class="step-body" id="stepBody" role="tabpanel" aria-live="polite"></div>
+        </div>
+        <div class="live-lab" aria-label="实时物理量对照">
+          <div class="live-lab-head"><span>LIVE STATE · 实时对照</span><b><i></i>P = n k<sub>B</sub>T</b></div>
+          <div class="live-lab-grid">
+            <div><span>压强 P</span><strong data-lab-p>103.5</strong><small>kPa</small></div>
+            <div><span>数密度 n</span><strong data-lab-n>2.50</strong><small>×10²⁵ m⁻³</small></div>
+            <div><span>温度 T</span><strong data-lab-t>300</strong><small>K</small></div>
+          </div>
+          <div class="lab-gauge"><span data-lab-gauge style="width:34%"></span></div>
+          <div class="live-lab-foot"><span>温度 ↑ / 密度 ↑ → 压强 ↑</span><b>v<sub>rms</sub> <span data-lab-v>517</span> m/s</b></div>
+        </div>
+        <div class="step-nav">
+          <button class="nav-btn" id="prevBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+            上一步
+          </button>
+          <span class="nav-progress" id="navProgress">01 / 07</span>
+          <button class="nav-btn next" id="nextBtn" type="button">
+            下一步
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>
+          </button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="control-card" aria-label="温度与分子数密度调节">
+      <div class="control-head">
+        <div class="control-title">
+          <p>LIVE PARAMETERS / 实时参数</p>
+          <h2>调一调，压强会怎样变化？</h2>
+        </div>
+        <div class="control-actions">
+          <button class="mode-btn primary" id="playWide" type="button">
+            <svg class="ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.6" height="14" rx="1"/><rect x="13.4" y="5" width="3.6" height="14" rx="1"/></svg>
+            <svg class="ico-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M8 5.2v13.6L19 12z"/></svg>
+            <span id="playLabel">暂停演示</span>
+          </button>
+          <button class="mode-btn" id="assumptionsBtn2" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 10.5V17M12 7.2v.2"/></svg>
+            模型假设
+          </button>
+        </div>
+      </div>
+
+      <div class="control-grid">
+        <label class="slider-block" for="tempRange">
+          <span class="slider-head">
+            <span class="slider-name">温度 T<small>TEMPERATURE</small></span>
+            <span class="slider-value" id="tempValue">300 <span>K</span></span>
+          </span>
+          <input id="tempRange" type="range" min="200" max="600" step="5" value="300" aria-label="温度，单位开尔文">
+          <span class="slider-scale"><span>200 K</span><span>400 K</span><span>600 K</span></span>
+        </label>
+
+        <label class="slider-block" for="densityRange">
+          <span class="slider-head">
+            <span class="slider-name">分子数密度 n<small>NUMBER DENSITY</small></span>
+            <span class="slider-value" id="densityValue">2.50 <span>×10²⁵ m⁻³</span></span>
+          </span>
+          <input id="densityRange" type="range" min="0.8" max="3.6" step="0.05" value="2.5" aria-label="分子数密度，单位为十的二十五次方每立方米">
+          <span class="slider-scale"><span>稀薄</span><span>标准</span><span>稠密</span></span>
+        </label>
+
+        <div class="live-block">
+          <div class="live-head"><span>宏观压强</span><b>P = n k<sub>B</sub>T</b></div>
+          <div class="pressure-line"><strong id="pressureValue">103.5</strong><small>kPa</small></div>
+          <div class="gauge"><span id="gaugeFill"></span></div>
+          <div class="live-sub"><span>v<sub>rms</sub> <b id="vRmsValue">517</b> m/s</span><span>相对标准大气压 <b id="atmValue">1.02</b> atm</span></div>
+        </div>
+
+        <div class="dist-block">
+          <div class="dist-head"><span>速率分布 f(v)</span><b id="distLabel">N₂ · 300 K</b></div>
+          <canvas id="distChart" aria-label="随温度变化的麦克斯韦速率分布曲线"></canvas>
+          <div class="dist-foot"><span>0</span><span id="distT">T = 300 K</span><span>1100 m/s</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glance" aria-label="推导链条速览">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">THE DERIVATION AT A GLANCE</p>
+          <h2>一条从碰撞到压强的推导链</h2>
+        </div>
+        <p>单个分子服从力学，大量分子服从统计。五个关键式，把“撞墙”变成可以计算的宏观量。</p>
+      </div>
+      <div class="chain">
+        <article class="chain-card">
+          <div class="chain-no"><span>01 · 碰撞</span><small>MOMENTUM</small></div>
+          <div class="chain-formula"><math display="inline"><mrow><mi mathvariant="normal">Δ</mi><msub><mi>p</mi><mrow><mi>i</mi><mi>x</mi></mrow></msub><mo>=</mo><mo>−</mo><mn>2</mn><mi>m</mi><msub><mi>v</mi><mrow><mi>i</mi><mi>x</mi></mrow></msub></mrow></math></div>
+          <p class="chain-caption">弹性碰撞只翻转垂直壁面的速度分量。</p>
+        </article>
+        <article class="chain-card">
+          <div class="chain-no"><span>02 · 冲量</span><small>IMPULSE</small></div>
+          <div class="chain-formula"><math display="inline"><mrow><msub><mi>I</mi><mrow><mi>i</mi><mi>x</mi></mrow></msub><mo>=</mo><mn>2</mn><mi>m</mi><msub><mi>v</mi><mrow><mi>i</mi><mi>x</mi></mrow></msub></mrow></math></div>
+          <p class="chain-caption">一次碰撞，器壁获得 2mv<sub>ix</sub> 的冲量。</p>
+        </article>
+        <article class="chain-card">
+          <div class="chain-no"><span>03 · 通量</span><small>FLUX</small></div>
+          <div class="chain-formula"><math display="inline"><mrow><mi>d</mi><msub><mi>N</mi><mi>i</mi></msub><mo>=</mo><msub><mi>n</mi><mi>i</mi></msub><msub><mi>v</mi><mrow><mi>i</mi><mi>x</mi></mrow></msub><mi>d</mi><mi>t</mi><mi>d</mi><mi>s</mi></mrow></math></div>
+          <p class="chain-caption">用速度圆柱统计 dt 内撞上 ds 的分子数。</p>
+        </article>
+        <article class="chain-card">
+          <div class="chain-no"><span>04 · 求和</span><small>ENSEMBLE</small></div>
+          <div class="chain-formula"><math display="inline"><mrow><mi>P</mi><mo>=</mo><mi>m</mi><mi>n</mi><mover accent="true"><msubsup><mi>v</mi><mi>x</mi><mn>2</mn></msubsup><mo>¯</mo></mover></mrow></math></div>
+          <p class="chain-caption">对所有分子求和，得到 x 方向的统计平均。</p>
+        </article>
+        <article class="chain-card">
+          <div class="chain-no"><span>05 · 各向同性</span><small>ISOTROPY</small></div>
+          <div class="chain-formula"><math display="inline"><mrow><mi>P</mi><mo>=</mo><mfrac><mn>1</mn><mn>3</mn></mfrac><mi>n</mi><mi>m</mi><mover accent="true"><msup><mi>v</mi><mn>2</mn></msup><mo>¯</mo></mover></mrow></math></div>
+          <p class="chain-caption">三个方向等价，除以 3 得到最终压强公式。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="result" aria-label="压强公式结论">
+      <div class="result-left">
+        <p class="eyebrow">THE RESULT / 结论</p>
+        <h2>压强，是微观运动能的统计体现。</h2>
+        <div class="result-eq math">
+          <math display="block"><mtable columnalign="right center left" columnspacing="0.62em" rowspacing="0.24em">
+            <mtr><mtd><mi>P</mi></mtd><mtd><mo>=</mo></mtd><mtd><mfrac><mn>1</mn><mn>3</mn></mfrac><mi>n</mi><mi>m</mi><mover accent="true"><msup><mi>v</mi><mn>2</mn></msup><mo>¯</mo></mover></mtd></mtr>
+            <mtr><mtd></mtd><mtd><mo>=</mo></mtd><mtd><mfrac><mn>2</mn><mn>3</mn></mfrac><mi>n</mi><msub><mover accent="true"><mi>ε</mi><mo>¯</mo></mover><mi>k</mi></msub></mtd></mtr>
+          </mtable></math>
+        </div>
+        <p class="result-sub">
+          其中 <b>n = N/V</b> 是分子数密度，<b><span class="ovl">v²</span></b> 是分子速率平方的统计平均值，
+          <b><span class="eps">ε̄</span><sub>k</sub> = ½m<span class="ovl">v²</span></b> 是分子的平均平动动能。<b>P</b> 是宏观可测量，而 n 与 ε̄<sub>k</sub> 是微观量的统计平均值。
+        </p>
+        <div class="result-tags">
+          <span class="result-tag"><i></i>宏观 · P</span>
+          <span class="result-tag"><i></i>微观 · n</span>
+          <span class="result-tag"><i></i>统计 · ε̄<sub>k</sub></span>
+          <span class="result-tag"><i></i>等价 · P = ⅓ρ<span class="ovl">v²</span></span>
+        </div>
+      </div>
+      <div class="result-right">
+        <div class="insight">
+          <span class="insight-num">01</span>
+          <div><b>不是单个分子，而是大量分子</b><p>单个分子的碰撞是随机的；压强来自单位时间、单位面积上大量碰撞冲量的统计平均。</p></div>
+        </div>
+        <div class="insight">
+          <span class="insight-num">02</span>
+          <div><b>压强与 n、T 同时相关</b><p>分子越密，单位时间撞墙的分子越多；温度越高，分子平均速率越大。两者共同抬高压强。</p></div>
+        </div>
+        <div class="insight">
+          <span class="insight-num">03</span>
+          <div><b>⅓ 来自三维空间的对称性</b><p>三个方向平权，<i>v̄<sub>x</sub>² = v̄<sub>y</sub>² = v̄<sub>z</sub>² = ⅓v̄²</i>，这是一维统计通向三维压强的桥梁。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quiz" aria-label="课堂小测">
+      <div>
+        <p>QUICK CHECK / 课堂一问</p>
+        <h3>保持分子数密度 n 不变，把温度升为原来的 4 倍，压强 P 与方均根速率 v<sub>rms</sub> 分别怎样变化？</h3>
+      </div>
+      <div class="quiz-options" id="quizOptions">
+        <button class="quiz-option" type="button" data-answer="a">P ×4，v<sub>rms</sub> ×2</button>
+        <button class="quiz-option" type="button" data-answer="b">P ×2，v<sub>rms</sub> ×4</button>
+        <button class="quiz-option" type="button" data-answer="c">P ×4，v<sub>rms</sub> ×4</button>
+      </div>
+      <p class="quiz-feedback" id="quizFeedback" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span><b>内容依据：</b>12.3 理想气体的压强公式 · 大学物理 第十二章　|　3D 交互演示，可离线运行</span>
+    <span class="keys">
+      <span class="key"><kbd>1</kbd>–<kbd>7</kbd> 切换步骤</span>
+      <span class="key"><kbd>Space</kbd> 暂停</span>
+      <span class="key"><kbd>R</kbd> 重置视角</span>
+      <span class="key"><kbd>←</kbd><kbd>→</kbd> 上一步 / 下一步</span>
+    </span>
+  </footer>
+</div>
+
+<dialog id="assumptionsDialog" aria-labelledby="assumptionsTitle">
+  <div class="modal-head">
+    <div>
+      <p class="eyebrow">THE MICROSCOPIC MODEL</p>
+      <h2 id="assumptionsTitle">理想气体的微观模型</h2>
+    </div>
+    <button class="modal-close" id="modalClose" type="button" aria-label="关闭模型假设">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="assumption"><span>01</span><div><b>分子可视为质点</b><p>分子的线度远小于分子间距，因此不占用容器体积，只以位置和速度描述。</p></div></div>
+    <div class="assumption"><span>02</span><div><b>除碰撞外无相互作用</b><p>平衡态下分子间平均距离较大，忽略引力与斥力，只在碰撞瞬间交换动量。</p></div></div>
+    <div class="assumption"><span>03</span><div><b>碰撞是完全弹性的</b><p>分子与器壁碰撞时动能守恒，速度的切向分量不变，法向分量反向。</p></div></div>
+    <div class="assumption"><span>04</span><div><b>位置均匀 · 方向各向同性</b><p>平衡态时 n = N/V 处处相同；速度方向没有偏好，三个方向平权。</p></div></div>
+    <div class="modal-eq">
+      <math display="block"><mtable columnalign="right center left" columnspacing="0.62em" rowspacing="0.25em">
+        <mtr><mtd><mi>V</mi></mtd><mtd><mo>=</mo></mtd><mtd><msub><mi>L</mi><mi>x</mi></msub><msub><mi>L</mi><mi>y</mi></msub><msub><mi>L</mi><mi>z</mi></msub></mtd></mtr>
+        <mtr><mtd><mi>n</mi></mtd><mtd><mo>=</mo></mtd><mtd><mfrac><mi>N</mi><mi>V</mi></mfrac></mtd></mtr>
+        <mtr><mtd><mover accent="true"><msubsup><mi>v</mi><mi>x</mi><mn>2</mn></msubsup><mo>¯</mo></mover></mtd><mtd><mo>=</mo></mtd><mtd><mover accent="true"><msubsup><mi>v</mi><mi>y</mi><mn>2</mn></msubsup><mo>¯</mo></mover><mo>=</mo><mover accent="true"><msubsup><mi>v</mi><mi>z</mi><mn>2</mn></msubsup><mo>¯</mo></mover></mtd></mtr>
+      </mtable></math>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  const K_B = 1.380649e-23;
+  const M_N2 = 4.65e-26;
+  const MOLAR_N2 = 0.028;
+  const R_GAS = 8.314;
+  const BOX = { hx: 3.0, hy: 2.15, hz: 2.55 };
+  const MOL_R = 0.1;
+  const CAM_DIST = 18;
+  const P_MAX = 300;
+
+  const initial = new URLSearchParams(location.search);
+  const initialStepRaw = Number(initial.get('step'));
+  const initialStep = Number.isFinite(initialStepRaw) && initialStepRaw >= 1 && initialStepRaw <= 7
+    ? initialStepRaw - 1 : 0;
+
+  const state = {
+    step: initialStep,
+    T: clamp(Number(initial.get('t')) || 300, 200, 600),
+    n: clamp(Number(initial.get('n')) || 2.5, 0.8, 3.6),
+    playing: initial.get('paused') !== '1' && !reducedMotion,
+    speed: 1,
+    vxFilter: initialStep === 3,
+    isoBlend: 0,
+    isoTarget: initialStep === 5 ? 1 : 0,
+    selectedId: null,
+    hoverId: null,
+    wallFlash: 0,
+    time: 0,
+    tick: 0,
+    hitCount: 0,
+    hitRate: 0,
+    hitTimer: 0,
+    activeDrag: false
+  };
+
+  /* MathML helpers: native browser rendering keeps the formulas crisp,
+     properly stacked and aligned without external font/CDN dependencies. */
+  const mi = (s, attrs = '') => `<mi${attrs}>${s}</mi>`;
+  const mn = s => `<mn>${s}</mn>`;
+  const mo = s => `<mo>${s}</mo>`;
+  const mrow = (...parts) => `<mrow>${parts.join('')}</mrow>`;
+  const msub = (base, sub) => `<msub>${base}${sub}</msub>`;
+  const msup = (base, sup) => `<msup>${base}${sup}</msup>`;
+  const msubsup = (base, sub, sup) => `<msubsup>${base}${sub}${sup}</msubsup>`;
+  const mfrac = (num, den) => `<mfrac>${num}${den}</mfrac>`;
+  const mover = base => `<mover accent="true">${base}<mo>¯</mo></mover>`;
+  const msum = sub => `<munder><mo>∑</mo>${sub}</munder>`;
+  const mathInline = inner => `<math display="inline">${inner}</math>`;
+  const mathBlock = (inner, cls = '') => `<math display="block"${cls ? ` class="${cls}"` : ''}>${inner}</math>`;
+  const mathCell = inner => `<math display="inline">${inner}</math>`;
+  const eqRow = (lhs, rhs, rel = '=') => `<div class="eq-grow"><span class="eq-gl">${lhs ? mathCell(lhs) : ''}</span><span class="eq-gr">${mathCell(`<mo>${rel}</mo>`)}</span><span class="eq-gv">${mathCell(rhs)}</span></div>`;
+  const eqCont = (rhs, rel = '=') => eqRow('', rhs, rel);
+  const mathTable = (rows, cls = '') => `<div class="eq-grid${cls ? ` ${cls}` : ''}">${rows}</div>`;
+
+  const V_I = msub(mi('v'), mi('i'));
+  const V_IX = msub(mi('v'), mrow(mi('i'), mi('x')));
+  const V_IY = msub(mi('v'), mrow(mi('i'), mi('y')));
+  const V_IZ = msub(mi('v'), mrow(mi('i'), mi('z')));
+  const V_IX2 = msubsup(mi('v'), mrow(mi('i'), mi('x')), mn('2'));
+  const V_X2 = mover(msubsup(mi('v'), mi('x'), mn('2')));
+  const V_Y2 = mover(msubsup(mi('v'), mi('y'), mn('2')));
+  const V_Z2 = mover(msubsup(mi('v'), mi('z'), mn('2')));
+  const V2 = mover(msup(mi('v'), mn('2')));
+  const N_I = msub(mi('n'), mi('i'));
+  const CAP_N_I = msub(mi('N'), mi('i'));
+  const W_I = msub(mi('w'), mi('i'));
+  const EPS_K = msub(mover(mi('ε')), mi('k'));
+  const DELTA_P_IX = mrow(mi('Δ', ' mathvariant="normal"'), msub(mi('p'), mrow(mi('i'), mi('x'))));
+  const I_IX = msub(mi('I'), mrow(mi('i'), mi('x')));
+  const DP_I = mrow(mi('d'), msub(mi('P'), mi('i')));
+  const DN_I = mrow(mi('d'), msub(mi('N'), mi('i')));
+  const DT = mrow(mi('d'), mi('t'));
+  const DS = mrow(mi('d'), mi('s'));
+  const SUM_I = mrow(msum(mi('i')), '<mspace width="0.1em"/>');
+
+  const STEPS = [
+    {
+      no: '01',
+      scene: '微观模型',
+      sceneSub: 'KINETIC MODEL · N MOLECULES',
+      tag: '模型与假设',
+      title: '把气体装进一只透明的盒子',
+      lead: '设容器边长分别为 L<sub>x</sub>、L<sub>y</sub>、L<sub>z</sub>，体积 V = L<sub>x</sub>L<sub>y</sub>L<sub>z</sub>；其中共有 N 个质量为 m 的全同分子。',
+      points: [
+        ['对象', '分子视为质点，除弹性碰撞外无相互作用，运动遵从经典力学。'],
+        ['位置', '平衡态下分布均匀，数密度 n = N/V 处处相同。'],
+        ['方向', '速度方向各向同性，没有哪一个方向更特殊。']
+      ],
+      eq: mathTable(`
+        ${eqRow(mi('V'), mrow(msub(mi('L'), mi('x')), msub(mi('L'), mi('y')), msub(mi('L'), mi('z'))))}
+        ${eqRow(mi('n'), mfrac(mi('N'), mi('V')))}
+      `),
+      eqFoot: 'V 是宏观体积；n 是单位体积内的分子数。',
+      note: '单个分子服从经典力学；大量分子服从统计规律。两条线索在这里会合。'
+    },
+    {
+      no: '02',
+      scene: '一次碰撞',
+      sceneSub: 'ELASTIC COLLISION · WALL A₁',
+      tag: '一次碰撞',
+      title: '撞上器壁，x 方向速度反向',
+      lead: '取一个速度为 <b>v<sub>i</sub> = (v<sub>ix</sub>, v<sub>iy</sub>, v<sub>iz</sub>)</b> 的分子，考察它与右侧器壁 A₁ 的完全弹性碰撞。器壁平行于 y-z 平面，碰撞只改变垂直于壁面的 v<sub>ix</sub>。',
+      points: [
+        ['碰前', '分子动量的 x 分量为 m v<sub>ix</sub>，方向沿 +x。'],
+        ['碰后', '速度反向，动量变为 −m v<sub>ix</sub>，切向分量不变。'],
+        ['变化', '动量变化 Δp<sub>ix</sub> 指向 −x，大小为 2m v<sub>ix</sub>。']
+      ],
+      eq: mathTable(`
+        ${eqRow(DELTA_P_IX, mrow(mo('('), mo('−'), mi('m'), V_IX, mo(')'), mo('−'), mo('('), mi('m'), V_IX, mo(')')))}
+        ${eqCont(mrow(mo('−'), mn('2'), mi('m'), V_IX))}
+      `),
+      eqFoot: '负号表示动量变化沿 −x，即指向容器内部。',
+      note: '这是器壁给分子的冲量。由牛顿第三定律，分子给器壁的冲量等大反向。'
+    },
+    {
+      no: '03',
+      scene: '冲量',
+      sceneSub: 'IMPULSE ON THE WALL',
+      tag: '冲量',
+      title: '一次碰撞，给器壁 2mv<sub>ix</sub> 的冲量',
+      lead: '由牛顿第三定律，分子给器壁的冲量与器壁给分子的冲量等大反向。因此，每一次碰撞，器壁都会获得一个沿 +x 方向的冲量。',
+      points: [
+        ['方向', '垂直于器壁向外，沿 +x 方向。'],
+        ['大小', '正比于分子质量 m 和法向速率 v<sub>ix</sub>。'],
+        ['累积', '单次冲量极小，但大量碰撞在单位时间内不断累积。']
+      ],
+      eq: mathBlock(mrow(I_IX, mo('='), mn('2'), mi('m'), V_IX)),
+      eqFoot: '冲量 I = Δp 的大小；方向沿 +x，指向器壁外侧。',
+      note: '接下来要回答两个问题：单位时间内有多少分子撞墙？每个分子贡献多少冲量？'
+    },
+    {
+      no: '04',
+      scene: '碰撞通量',
+      sceneSub: 'COLLISION FLUX · vₓ > 0',
+      tag: '数分子',
+      title: '用一根“速度圆柱”，数清谁会撞墙',
+      lead: '考虑速度为 <b>v<sub>i</sub></b>、且 x 分量为 <b>v<sub>ix</sub> &gt; 0</b> 的一群分子。在 dt 内，只有离器壁不超过 v<sub>ix</sub>dt 的分子，才能撞上面积元 ds。它们正好落在一个以 ds 为底、以 v<sub>ix</sub>dt 为高的圆柱体内。',
+      points: [
+        ['几何', '这些分子恰好落在一个底面积为 ds、高为 v<sub>ix</sub>dt 的圆柱体中。'],
+        ['计数', '圆柱体体积 = ds · v<sub>ix</sub>dt；乘以速度为 v<sub>i</sub> 的分子数密度 n<sub>i</sub>，就是该组分子数。'],
+        ['取舍', '只统计 v<sub>ix</sub> &gt; 0 的分子，因为它们才朝器壁运动。']
+      ],
+      eq: mathBlock(mrow(DN_I, mo('='), N_I, mo('·'), V_IX, mo('·'), DT, mo('·'), DS)),
+      eqFoot: 'n<sub>i</sub> 是速度为 v<sub>i</sub> 的分子数密度；ds 是器壁上的面积元。',
+      note: '速度越大，圆柱体越长；分子越密，圆柱体内的分子越多。'
+    },
+    {
+      no: '05',
+      scene: '统计求和',
+      sceneSub: 'ENSEMBLE AVERAGE · Σ',
+      tag: '求和',
+      title: '把所有碰撞叠加起来',
+      lead: '速度为 v<sub>i</sub> 的 dN<sub>i</sub> 个分子各给器壁冲量 2m v<sub>ix</sub>。压强等于单位时间、单位面积上的总冲量，于是可以逐组求和。',
+      points: [
+        ['统计', '对所有速度 v<sub>i</sub> 求和时只有一半朝壁，乘 ½；再用概率 w<sub>i</sub> = N<sub>i</sub>/N 加权。']
+      ],
+      eq: `
+        <div class="eq-subhead"><b>①</b> 把 n<sub>i</sub> 写成“概率 × 数密度”</div>
+        ${mathTable(`
+          ${eqRow(N_I, mrow(mfrac(CAP_N_I, mi('V')), mo('='), mfrac(CAP_N_I, mi('V')), mo('·'), mfrac(mi('N'), mi('N')), mo('='), mfrac(CAP_N_I, mi('N')), mo('·'), mfrac(mi('N'), mi('V')), mo('='), W_I, mi('n')))}
+        `, 'eq-compact eq-tight')}
+        <div class="eq-subhead"><b>②</b> 代入压强求和</div>
+        ${mathTable(`
+          ${eqRow(mi('P'), mrow(mfrac(mn('1'), mn('2')), SUM_I, mn('2'), mi('m'), N_I, V_IX2))}
+          ${eqCont(mrow(mi('m'), SUM_I, N_I, V_IX2))}
+          ${eqCont(mrow(mi('m'), SUM_I, mfrac(CAP_N_I, mi('N')), mo('·'), mfrac(mi('N'), mi('V')), V_IX2))}
+          ${eqCont(mrow(mi('m'), mi('n'), SUM_I, W_I, V_IX2))}
+          ${eqCont(mrow(mi('m'), mi('n'), V_X2))}
+        `, 'eq-compact eq-tight')}
+      `,
+      eqFoot: 'n<sub>i</sub> = N<sub>i</sub>/V 是速度为 v<sub>i</sub> 的分子数密度；w<sub>i</sub> = N<sub>i</sub>/N 是分子具有速度 v<sub>i</sub> 的概率，故 n<sub>i</sub> = w<sub>i</sub>n。',
+      note: '这里出现了统计平均：单个分子的速度没有意义，大量分子的平方平均才有宏观意义。'
+    },
+    {
+      no: '06',
+      scene: '各向同性',
+      sceneSub: 'ISOTROPY · VELOCITY SPACE',
+      tag: '统计假设',
+      title: '三个方向，没有谁更特殊',
+      lead: '平衡态下速度方向各向同性，x、y、z 三个方向的速率平方平均值相等。这不是对单个分子的断言，而是对大量分子的统计结论。',
+      points: [
+        ['分解', 'v² = v<sub>x</sub>² + v<sub>y</sub>² + v<sub>z</sub>²。'],
+        ['对称', '三个方向的平均值相等，因此每一项都等于 ⅓<span class="ovl">v²</span>。'],
+        ['结果', '正是这个 1/3，把一维的碰撞统计变成三维的压强公式。']
+      ],
+      eq: mathTable(`
+        ${eqRow(V_X2, mrow(V_Y2, mo('='), V_Z2))}
+        ${eqCont(mrow(mfrac(mn('1'), mn('3')), V2))}
+      `),
+      eqFoot: '各向同性是平衡态的基本统计假设。',
+      note: '在速度空间里，大量分子的速度箭头均匀指向各个方向；没有哪一根轴拥有特权。'
+    },
+    {
+      no: '07',
+      scene: '压强公式',
+      sceneSub: 'MACROSCOPIC RESULT · P',
+      tag: '结论',
+      title: '压强，是微观运动能的统计体现',
+      lead: '把平方平均写成分子平均平动动能 <b>ε̄<sub>k</sub> = ½m<span class="ovl">v²</span></b>，就得到压强公式的两种等价形式。',
+      points: [
+        ['宏观', 'P 是气体作用在器壁单位面积上的压强，可以直接测量。'],
+        ['微观', 'n 和 ε̄<sub>k</sub> 是大量分子微观量的统计平均值。'],
+        ['联系', '温度升高使 ε̄<sub>k</sub> 增大；分子更密使 n 增大，二者共同抬高压强。']
+      ],
+      eq: mathTable(`
+        ${eqRow(mi('P'), mrow(mfrac(mn('1'), mn('3')), mi('n'), mi('m'), V2))}
+        ${eqCont(mrow(mfrac(mn('2'), mn('3')), mi('n'), EPS_K))}
+      `),
+      eqFoot: '另一种写法：P = ⅓ρ<span class="ovl">v²</span>，其中 ρ = mn 是气体的质量密度。',
+      note: '公式里的 v² 是统计平均值，不是某个分子的速度平方。'
+    }
+  ];
+
+  /* ---------------- DOM ---------------- */
+  const stageCard = $('#stageCard');
+  const canvas = $('#scene');
+  const ctx = canvas.getContext('2d');
+  const sceneIndex = $('#sceneIndex');
+  const sceneName = $('#sceneName');
+  const sceneSub = $('#sceneSub');
+  const sceneHint = $('#stageHint');
+  const fluxBadge = $('#fluxBadge');
+  const stepDots = $('#stepDots');
+  const stepBody = $('#stepBody');
+  const stepScroll = $('#stepScroll');
+  const stepNow = $('#stepNow');
+  const navProgress = $('#navProgress');
+  const prevBtn = $('#prevBtn');
+  const nextBtn = $('#nextBtn');
+  const playBtn = $('#playBtn');
+  const playWide = $('#playWide');
+  const playLabel = $('#playLabel');
+  const speedBtn = $('#speedBtn');
+  const resetViewBtn = $('#resetViewBtn');
+  const fullBtn = $('#fullBtn');
+  const hudP = $('#hudP');
+  const hudV = $('#hudV');
+  const hudHits = $('#hudHits');
+  const tempRange = $('#tempRange');
+  const densityRange = $('#densityRange');
+  const tempValue = $('#tempValue');
+  const densityValue = $('#densityValue');
+  const pressureValue = $('#pressureValue');
+  const gaugeFill = $('#gaugeFill');
+  const vRmsValue = $('#vRmsValue');
+  const atmValue = $('#atmValue');
+  const distChart = $('#distChart');
+  const distLabel = $('#distLabel');
+  const distT = $('#distT');
+  const molTip = $('#molTip');
+  const tipId = $('#tipId');
+  const tipLock = $('#tipLock');
+  const tipVx = $('#tipVx');
+  const tipVy = $('#tipVy');
+  const tipVz = $('#tipVz');
+  const assumptionsDialog = $('#assumptionsDialog');
+  const assumptionsBtn2 = $('#assumptionsBtn2');
+  const modalClose = $('#modalClose');
+  const quizOptions = $('#quizOptions');
+  const quizFeedback = $('#quizFeedback');
+
+  const dctx = distChart.getContext('2d');
+
+  /* ---------------- view / camera ---------------- */
+  const view = {
+    width: 0, height: 0, dpr: 1,
+    cx: 0, cy: 0, focal: 1100, zoom: 1,
+    targetZoom: 1, yaw: -0.64, pitch: 0.22,
+    targetYaw: -0.64, targetPitch: 0.22
+  };
+
+  function toCamera(p) {
+    const cy = Math.cos(view.yaw), sy = Math.sin(view.yaw);
+    const cp = Math.cos(view.pitch), sp = Math.sin(view.pitch);
+    const x1 = p.x * cy + p.z * sy;
+    const z1 = -p.x * sy + p.z * cy;
+    const y2 = p.y * cp - z1 * sp;
+    const z2 = p.y * sp + z1 * cp;
+    return { x: x1, y: y2, z: z2 };
+  }
+
+  function project(p) {
+    const v = toCamera(p);
+    const s = (view.focal / (CAM_DIST + v.z)) * view.zoom;
+    return { x: view.cx + v.x * s, y: view.cy - v.y * s, s, z: v.z };
+  }
+
+  function resizeStage() {
+    const rect = stageCard.getBoundingClientRect();
+    view.width = Math.max(1, rect.width);
+    view.height = Math.max(1, rect.height);
+    view.dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(view.width * view.dpr);
+    canvas.height = Math.round(view.height * view.dpr);
+    canvas.style.width = view.width + 'px';
+    canvas.style.height = view.height + 'px';
+    ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    view.cx = view.width * 0.49;
+    view.cy = view.height * (view.width < 560 ? 0.51 : 0.52);
+    view.focal = view.width < 620
+      ? clamp(Math.min(view.width * 1.8, view.height * 1.55), 560, 820)
+      : clamp(Math.min(view.width * 1.65, view.height * 1.95), 850, 1550);
+  }
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(resizeStage).observe(stageCard);
+  } else {
+    window.addEventListener('resize', resizeStage);
+  }
+  resizeStage();
+
+  /* ---------------- molecule sprites ---------------- */
+  const MOL_COLORS = ['#62d9c6', '#7ce6d7', '#a4eedb', '#e7ce86', '#f0a06f'];
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+  }
+  function makeMoleculeSprite(color) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const rgb = hexToRgb(color);
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,255,255,0.98)');
+    grad.addColorStop(0.11, `rgba(${rgb},1)`);
+    grad.addColorStop(0.28, `rgba(${rgb},0.84)`);
+    grad.addColorStop(0.58, `rgba(${rgb},0.18)`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
+    g.fillStyle = grad;
+    g.beginPath();
+    g.arc(32, 32, 32, 0, TAU);
+    g.fill();
+    return c;
+  }
+  const MOL_SPRITES = MOL_COLORS.map(makeMoleculeSprite);
+  const HERO_SPRITE = makeMoleculeSprite('#ffd18c');
+
+  /* ---------------- molecules ---------------- */
+  let molecules = [];
+  let nextMoleculeId = 1;
+  let ripples = [];
+  let isoVectors = [];
+
+  const hero = {
+    active: false, x: -BOX.hx + 0.6, y: 0.62, z: 0.38,
+    r: 0.12, vx: 1.55, phase: 'travel', hold: 0, flash: 0
+  };
+
+  function speedBase(T = state.T) {
+    return 1.85 * Math.sqrt(T / 300);
+  }
+
+  function colorIndexForSpeed(speed) {
+    const ratio = speed / speedBase();
+    return clamp(Math.floor((ratio - 0.38) / 0.21), 0, MOL_COLORS.length - 1);
+  }
+
+  function randomDirection() {
+    const u = Math.random() * 2 - 1;
+    const theta = Math.random() * TAU;
+    const r = Math.sqrt(Math.max(0, 1 - u * u));
+    return { x: r * Math.cos(theta), y: u, z: r * Math.sin(theta) };
+  }
+
+  function randomVelocity(T = state.T) {
+    const dir = randomDirection();
+    const speed = speedBase(T) * (0.55 + Math.random() * 0.8);
+    return {
+      vx: dir.x * speed,
+      vy: dir.y * speed,
+      vz: dir.z * speed
+    };
+  }
+
+  function randomPosition() {
+    return {
+      x: (Math.random() * 2 - 1) * (BOX.hx - MOL_R - 0.12),
+      y: (Math.random() * 2 - 1) * (BOX.hy - MOL_R - 0.12),
+      z: (Math.random() * 2 - 1) * (BOX.hz - MOL_R - 0.12)
+    };
+  }
+
+  function makeMolecule() {
+    const p = randomPosition();
+    const v = randomVelocity();
+    const speed = Math.hypot(v.vx, v.vy, v.vz);
+    return {
+      id: nextMoleculeId++,
+      x: p.x, y: p.y, z: p.z,
+      vx: v.vx, vy: v.vy, vz: v.vz,
+      r: MOL_R * (0.9 + Math.random() * 0.22),
+      color: colorIndexForSpeed(speed),
+      trail: [],
+      _screen: null
+    };
+  }
+
+  function moleculeTargetCount() {
+    return Math.round(66 + (state.n - 0.8) * 34);
+  }
+
+  function syncMoleculeCount() {
+    const target = moleculeTargetCount();
+    while (molecules.length < target) molecules.push(makeMolecule());
+    if (molecules.length > target) molecules.length = target;
+    isoVectors = isoVectors.length ? isoVectors : makeIsoVectors();
+  }
+
+  function resetMolecules() {
+    molecules = [];
+    nextMoleculeId = 1;
+    syncMoleculeCount();
+  }
+
+  function rescaleVelocities(oldT, newT) {
+    const scale = Math.sqrt(newT / oldT);
+    for (const m of molecules) {
+      m.vx *= scale;
+      m.vy *= scale;
+      m.vz *= scale;
+      m.color = colorIndexForSpeed(Math.hypot(m.vx, m.vy, m.vz));
+    }
+  }
+
+  function makeIsoVectors() {
+    const arr = [];
+    for (let i = 0; i < 62; i++) {
+      const u = Math.random() * 2 - 1;
+      const theta = Math.random() * TAU;
+      const r = Math.sqrt(Math.max(0, 1 - u * u));
+      arr.push({
+        x: r * Math.cos(theta),
+        y: u,
+        z: r * Math.sin(theta),
+        len: 0.45 + Math.random() * 0.55,
+        phase: Math.random() * TAU
+      });
+    }
+    return arr;
+  }
+  isoVectors = makeIsoVectors();
+
+  function addRipple(y, z, power = 1) {
+    ripples.push({ y, z, age: 0, life: 0.62 + Math.random() * 0.16, power });
+    if (ripples.length > 22) ripples.shift();
+  }
+
+  function onRightWallHit(m) {
+    state.hitCount++;
+    state.wallFlash = Math.min(1.15, state.wallFlash + 0.32);
+    addRipple(m.y, m.z, clamp(Math.abs(m.vx) / speedBase(), 0.5, 1.8));
+  }
+
+  function updateMolecules(dt) {
+    const step = dt * state.speed;
+    for (const m of molecules) {
+      m.x += m.vx * step;
+      m.y += m.vy * step;
+      m.z += m.vz * step;
+
+      if (m.x > BOX.hx - m.r) {
+        m.x = BOX.hx - m.r;
+        m.vx = -Math.abs(m.vx);
+        m.trail = [];
+        onRightWallHit(m);
+      } else if (m.x < -BOX.hx + m.r) {
+        m.x = -BOX.hx + m.r;
+        m.vx = Math.abs(m.vx);
+        m.trail = [];
+      }
+      if (m.y > BOX.hy - m.r) {
+        m.y = BOX.hy - m.r;
+        m.vy = -Math.abs(m.vy);
+        m.trail = [];
+      } else if (m.y < -BOX.hy + m.r) {
+        m.y = -BOX.hy + m.r;
+        m.vy = Math.abs(m.vy);
+        m.trail = [];
+      }
+      if (m.z > BOX.hz - m.r) {
+        m.z = BOX.hz - m.r;
+        m.vz = -Math.abs(m.vz);
+        m.trail = [];
+      } else if (m.z < -BOX.hz + m.r) {
+        m.z = -BOX.hz + m.r;
+        m.vz = Math.abs(m.vz);
+        m.trail = [];
+      }
+
+      m.trail.push({ x: m.x, y: m.y, z: m.z });
+      if (m.trail.length > 6) m.trail.shift();
+    }
+  }
+
+  function configureHero(step = state.step) {
+    hero.active = step === 1 || step === 2;
+    hero.y = 0.62;
+    hero.z = 0.38;
+    hero.hold = 0;
+    hero.flash = 0;
+    hero.phase = 'travel';
+    if (!hero.active) return;
+    hero.vx = Math.abs(hero.vx) || 1.55;
+    hero.x = step === 1 ? BOX.hx - 1.75 : BOX.hx - 0.65;
+  }
+
+  function updateHero(dt) {
+    if (!hero.active) return;
+    const step = dt * state.speed;
+    if (hero.phase === 'travel') {
+      hero.x += hero.vx * step;
+      if (hero.x >= BOX.hx - hero.r) {
+        hero.x = BOX.hx - hero.r;
+        hero.vx = -Math.abs(hero.vx);
+        hero.phase = 'hold';
+        hero.hold = 2.2;
+        hero.flash = 1;
+        state.wallFlash = 1.15;
+        addRipple(hero.y, hero.z, 1.7);
+      }
+    } else {
+      hero.hold -= step;
+      if (hero.hold <= 0) {
+        hero.x = -BOX.hx + 0.7;
+        hero.vx = Math.abs(hero.vx);
+        hero.phase = 'travel';
+      }
+    }
+  }
+
+  /* ---------------- painting helpers ---------------- */
+  function roundRectPath(x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.lineTo(x + w - rr, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+    ctx.lineTo(x + w, y + h - rr);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+    ctx.lineTo(x + rr, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+    ctx.lineTo(x, y + rr);
+    ctx.quadraticCurveTo(x, y, x + rr, y);
+    ctx.closePath();
+  }
+
+  function drawArrow3D(start, end, color, width = 1.4, alpha = 0.8, label = '', labelSize = 10) {
+    const p1 = project(start), p2 = project(end);
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 4) return;
+    const ux = dx / len, uy = dy / len;
+    const head = clamp(len * 0.16, 4, 8);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x - ux * head * 0.74, p2.y - uy * head * 0.74);
+    ctx.strokeStyle = 'rgba(1,13,16,.62)';
+    ctx.lineWidth = width + 2.6;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x - ux * head * 0.78, p2.y - uy * head * 0.78);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(p2.x + ux * 1.2, p2.y + uy * 1.2);
+    ctx.lineTo(p2.x - ux * head - uy * head * 0.42, p2.y - uy * head + ux * head * 0.42);
+    ctx.lineTo(p2.x - ux * head + uy * head * 0.42, p2.y - uy * head - ux * head * 0.42);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(1,13,16,.5)';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+
+    if (label) {
+      ctx.font = `italic 600 ${labelSize}px "Cambria Math", Georgia, serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(1,12,13,.95)';
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = color;
+      ctx.fillText(label, p2.x + ux * (labelSize * 0.82), p2.y + uy * (labelSize * 0.82));
+      ctx.shadowBlur = 0;
+    }
+    ctx.restore();
+  }
+
+  function drawPill(text, world, ox, oy, opts = {}) {
+    const p = project(world);
+    const x = p.x + ox;
+    const y = p.y + oy;
+    const size = opts.size || 10;
+    const family = opts.family || '"Microsoft YaHei UI","Microsoft YaHei",sans-serif';
+    const style = opts.italic ? 'italic ' : '';
+    ctx.save();
+    ctx.font = `${style}600 ${size}px ${family}`;
+    const tw = ctx.measureText(text).width;
+    const padX = opts.padX || 7;
+    const padY = opts.padY || 4;
+    const w = tw + padX * 2;
+    const h = size + padY * 2;
+    const ax = opts.align === 'left' ? x : x - w / 2;
+    ctx.globalAlpha = opts.alpha == null ? 1 : opts.alpha;
+    roundRectPath(ax, y - h / 2, w, h, 5);
+    ctx.fillStyle = opts.bg || 'rgba(3,24,28,.79)';
+    ctx.fill();
+    ctx.strokeStyle = opts.border || 'rgba(116,231,210,.18)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    ctx.fillStyle = opts.color || 'rgba(231,246,240,.9)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, ax + w / 2, y + 0.5);
+    ctx.restore();
+  }
+
+  function projectPath(points, close = true) {
+    ctx.beginPath();
+    points.forEach((point, i) => {
+      const p = project(point);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    if (close) ctx.closePath();
+  }
+
+  function drawLine3D(a, b, color, width, alpha, dash = []) {
+    const p1 = project(a), p2 = project(b);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ---------------- backdrop & floor ---------------- */
+  const starField = Array.from({ length: 48 }, (_, i) => ({
+    x: ((i * 137.31 + 29.7) % 100) / 100,
+    y: ((i * 83.17 + 11.3) % 100) / 100,
+    r: 0.4 + (i % 4) * 0.24,
+    ph: i * 1.73
+  }));
+
+  function drawBackdrop() {
+    const w = view.width, h = view.height;
+    ctx.save();
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#05232a');
+    bg.addColorStop(0.5, '#041a20');
+    bg.addColorStop(1, '#021216');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const glow = ctx.createRadialGradient(view.cx, view.cy * 0.86, 0, view.cx, view.cy * 0.86, Math.max(w, h) * 0.68);
+    glow.addColorStop(0, 'rgba(31,123,111,.28)');
+    glow.addColorStop(0.36, 'rgba(19,83,79,.11)');
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.globalCompositeOperation = 'lighter';
+    for (const s of starField) {
+      const tw = 0.5 + 0.5 * Math.sin(state.time * 0.55 + s.ph);
+      ctx.beginPath();
+      ctx.arc(s.x * w, s.y * h, s.r, 0, TAU);
+      ctx.fillStyle = `rgba(189,236,225,${0.035 + 0.055 * tw})`;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawFloor() {
+    const y = -BOX.hy - 0.72;
+    const reach = 5.75;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = -6; i <= 6; i++) {
+      const major = i === 0;
+      const color = major ? 'rgba(126,211,195,.12)' : 'rgba(126,211,195,.047)';
+      drawLine3D({ x: i * 0.92, y, z: -reach }, { x: i * 0.92, y, z: reach }, color, 0.7, 1);
+      drawLine3D({ x: -reach, y, z: i * 0.92 }, { x: reach, y, z: i * 0.92 }, color, 0.7, 1);
+    }
+    [2.1, 3.25, 4.4].forEach((radius, idx) => {
+      ctx.beginPath();
+      for (let i = 0; i <= 96; i++) {
+        const a = i / 96 * TAU;
+        const p = project({ x: Math.cos(a) * radius, y, z: Math.sin(a) * radius });
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = idx === 0 ? 'rgba(116,215,197,.11)' : 'rgba(116,215,197,.052)';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    });
+
+    const center = project({ x: 0, y, z: 0 });
+    const rad = Math.max(50, 2.9 * center.s);
+    const shadow = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, rad);
+    shadow.addColorStop(0, 'rgba(0,0,0,.42)');
+    shadow.addColorStop(0.55, 'rgba(0,6,8,.18)');
+    shadow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.save();
+    ctx.translate(center.x, center.y);
+    ctx.scale(1, 0.34);
+    ctx.fillStyle = shadow;
+    ctx.beginPath();
+    ctx.arc(0, 0, rad, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+  }
+
+  /* ---------------- box & wall ---------------- */
+  const CORNERS = [
+    { x: -BOX.hx, y: -BOX.hy, z: -BOX.hz },
+    { x: BOX.hx, y: -BOX.hy, z: -BOX.hz },
+    { x: BOX.hx, y: BOX.hy, z: -BOX.hz },
+    { x: -BOX.hx, y: BOX.hy, z: -BOX.hz },
+    { x: -BOX.hx, y: -BOX.hy, z: BOX.hz },
+    { x: BOX.hx, y: -BOX.hy, z: BOX.hz },
+    { x: BOX.hx, y: BOX.hy, z: BOX.hz },
+    { x: -BOX.hx, y: BOX.hy, z: BOX.hz }
+  ];
+  const EDGES = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  const FACES = [
+    { id: 'right', idx: [1,2,6,5] },
+    { id: 'left', idx: [0,4,7,3] },
+    { id: 'top', idx: [3,2,6,7] },
+    { id: 'bottom', idx: [0,1,5,4] },
+    { id: 'front', idx: [4,5,6,7] },
+    { id: 'back', idx: [0,1,2,3] }
+  ];
+
+  function avgDepth(indices) {
+    let z = 0;
+    for (const i of indices) z += toCamera(CORNERS[i]).z;
+    return z / indices.length;
+  }
+
+  function drawBoxFaces() {
+    const isoFade = 1 - state.isoBlend * 0.94;
+    const sorted = FACES.slice().sort((a, b) => avgDepth(a.idx) - avgDepth(b.idx));
+    ctx.save();
+    for (const face of sorted) {
+      const points = face.idx.map(i => CORNERS[i]);
+      projectPath(points);
+      if (face.id === 'right') {
+        const center = project({ x: BOX.hx, y: 0, z: 0 });
+        const g = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, Math.max(90, 3.6 * center.s));
+        g.addColorStop(0, `rgba(51,215,183,${(0.13 + state.wallFlash * 0.18) * isoFade})`);
+        g.addColorStop(0.58, `rgba(30,151,139,${(0.07 + state.wallFlash * 0.08) * isoFade})`);
+        g.addColorStop(1, 'rgba(14,83,81,.015)');
+        ctx.fillStyle = g;
+      } else if (face.id === 'top') {
+        ctx.fillStyle = `rgba(150,209,198,${0.033 * isoFade})`;
+      } else if (face.id === 'bottom') {
+        ctx.fillStyle = `rgba(6,29,32,${0.15 * isoFade})`;
+      } else {
+        ctx.fillStyle = `rgba(119,177,170,${0.022 * isoFade})`;
+      }
+      ctx.fill();
+
+      if (face.id === 'right') {
+        ctx.save();
+        ctx.strokeStyle = `rgba(116,231,210,${(0.12 + state.wallFlash * 0.18) * isoFade})`;
+        ctx.lineWidth = 0.7;
+        for (let i = 1; i <= 4; i++) {
+          const u = i / 5;
+          drawLine3D(
+            { x: BOX.hx, y: -BOX.hy + u * 2 * BOX.hy, z: -BOX.hz },
+            { x: BOX.hx, y: -BOX.hy + u * 2 * BOX.hy, z: BOX.hz },
+            `rgba(124,231,211,${(0.1 + state.wallFlash * 0.13) * isoFade})`, 0.6, 1
+          );
+          drawLine3D(
+            { x: BOX.hx, y: -BOX.hy, z: -BOX.hz + u * 2 * BOX.hz },
+            { x: BOX.hx, y: BOX.hy, z: -BOX.hz + u * 2 * BOX.hz },
+            `rgba(124,231,211,${(0.1 + state.wallFlash * 0.13) * isoFade})`, 0.6, 1
+          );
+        }
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawBoxEdges() {
+    const isoFade = 1 - state.isoBlend * 0.96;
+    if (isoFade < 0.02) return;
+    ctx.save();
+    ctx.lineCap = 'round';
+    for (const [a, b] of EDGES) {
+      const p1 = project(CORNERS[a]), p2 = project(CORNERS[b]);
+      const rightEdge = [1, 2, 5, 6].includes(a) && [1, 2, 5, 6].includes(b);
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = `rgba(2,14,17,${0.55 * isoFade})`;
+      ctx.lineWidth = 3.1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = rightEdge
+        ? `rgba(110,231,209,${(0.66 + state.wallFlash * 0.22) * isoFade})`
+        : `rgba(99,191,177,${0.31 * isoFade})`;
+      ctx.lineWidth = rightEdge ? 1.35 : 0.85;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawWallRipples() {
+    if (state.isoBlend > 0.72) return;
+    const isoFade = 1 - state.isoBlend;
+    for (const r of ripples) {
+      const t = clamp(r.age / r.life, 0, 1);
+      const rad = 0.08 + 0.62 * easeOut(t);
+      const alpha = (1 - t) * 0.5 * r.power * isoFade;
+      ctx.save();
+      ctx.strokeStyle = `rgba(245,198,135,${alpha})`;
+      ctx.lineWidth = 1.6 * (1 - t) + 0.45;
+      ctx.beginPath();
+      for (let i = 0; i <= 52; i++) {
+        const a = i / 52 * TAU;
+        const p = project({
+          x: BOX.hx + 0.008,
+          y: r.y + Math.cos(a) * rad,
+          z: r.z + Math.sin(a) * rad
+        });
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+      if (t < 0.35) {
+        const c = project({ x: BOX.hx + 0.01, y: r.y, z: r.z });
+        const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 18);
+        g.addColorStop(0, `rgba(255,226,178,${0.6 * (1 - t / 0.35)})`);
+        g.addColorStop(1, 'rgba(255,213,150,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 18, 0, TAU);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawWallPressure() {
+    if (state.step === 5 || state.isoBlend > 0.5) return;
+    const base = 0.55 + state.wallFlash * 0.32;
+    const summing = state.step === 4;
+    const ys = summing
+      ? [-1.66, -1.11, -0.55, 0, 0.55, 1.11, 1.66]
+      : [-1.28, 0, 1.28];
+    ys.forEach((y, idx) => {
+      const len = 0.24 + state.wallFlash * 0.28 + (summing ? 0.03 + (idx % 3) * 0.05 : idx * 0.03);
+      drawArrow3D(
+        { x: BOX.hx + 0.02, y, z: 0.62 },
+        { x: BOX.hx + len, y, z: 0.62 },
+        '#ef8a69', summing ? 0.9 : 1.1, base * (summing ? 0.84 : 1),
+        !summing && idx === 1 && state.step >= 5 ? 'P' : '', 9
+      );
+    });
+    if (summing) {
+      drawPill('Σ', { x: BOX.hx + 0.52, y: 1.98, z: 0.62 }, 0, -3, {
+        size: 11, italic: true, family: '"Cambria Math", Georgia, serif',
+        color: '#f4c687', border: 'rgba(239,138,105,.34)', bg: 'rgba(38,27,19,.8)'
+      });
+    }
+  }
+
+  function drawWallTag() {
+    drawPill('A₁', { x: BOX.hx, y: BOX.hy - 0.36, z: BOX.hz - 0.28 }, 2, -6, {
+      size: 10.5,
+      family: '"Cambria Math", Georgia, serif',
+      color: '#a6f0df',
+      border: 'rgba(116,231,210,.28)',
+      bg: 'rgba(3,32,34,.78)'
+    });
+  }
+
+  function drawDimensions() {
+    if (state.step !== 0 || view.width < 620) return;
+    const alpha = 0.55;
+    const offsetY = -BOX.hy - 0.28;
+    const px1 = { x: -BOX.hx, y: offsetY, z: BOX.hz + 0.12 };
+    const px2 = { x: BOX.hx, y: offsetY, z: BOX.hz + 0.12 };
+    drawLine3D(px1, px2, 'rgba(239,176,112,.5)', 0.8, alpha, [3, 4]);
+    drawLine3D({ x: -BOX.hx, y: offsetY, z: BOX.hz + 0.12 }, { x: -BOX.hx, y: -BOX.hy, z: BOX.hz + 0.12 }, 'rgba(239,176,112,.38)', 0.7, alpha);
+    drawLine3D({ x: BOX.hx, y: offsetY, z: BOX.hz + 0.12 }, { x: BOX.hx, y: -BOX.hy, z: BOX.hz + 0.12 }, 'rgba(239,176,112,.38)', 0.7, alpha);
+    drawPill('Lx', { x: 0, y: offsetY, z: BOX.hz + 0.12 }, 0, 12, {
+      size: 10, family: '"Cambria Math", Georgia, serif', color: '#efb070', border: 'rgba(239,176,112,.24)', bg: 'rgba(14,33,34,.8)'
+    });
+
+    const py1 = { x: BOX.hx + 0.22, y: -BOX.hy, z: -BOX.hz };
+    const py2 = { x: BOX.hx + 0.22, y: BOX.hy, z: -BOX.hz };
+    drawLine3D(py1, py2, 'rgba(239,176,112,.46)', 0.8, alpha, [3, 4]);
+    drawPill('Ly', { x: BOX.hx + 0.22, y: 0.1, z: -BOX.hz }, 13, 0, {
+      size: 10, family: '"Cambria Math", Georgia, serif', color: '#efb070', border: 'rgba(239,176,112,.24)', bg: 'rgba(14,33,34,.8)'
+    });
+
+    const pz1 = { x: -BOX.hx - 0.22, y: -BOX.hy - 0.2, z: -BOX.hz };
+    const pz2 = { x: -BOX.hx - 0.22, y: -BOX.hy - 0.2, z: BOX.hz };
+    drawLine3D(pz1, pz2, 'rgba(239,176,112,.46)', 0.8, alpha, [3, 4]);
+    drawPill('Lz', { x: -BOX.hx - 0.22, y: -BOX.hy - 0.2, z: 0 }, -13, 6, {
+      size: 10, family: '"Cambria Math", Georgia, serif', color: '#efb070', border: 'rgba(239,176,112,.24)', bg: 'rgba(14,33,34,.8)'
+    });
+
+    drawPill('N 个分子 · n = N/V', { x: 0, y: BOX.hy + 0.36, z: -0.3 }, 0, 0, {
+      size: 9.2, color: 'rgba(204,235,226,.75)', border: 'rgba(116,231,210,.18)', bg: 'rgba(3,24,28,.72)'
+    });
+  }
+
+  function drawAxes() {
+    if ((state.step !== 0 && state.step !== 5) || view.width < 620) return;
+    const o = { x: -BOX.hx - 0.48, y: -BOX.hy - 0.26, z: BOX.hz + 0.45 };
+    const alpha = state.step === 5 ? 0.4 : 0.6;
+    drawArrow3D(o, { x: o.x + 0.9, y: o.y, z: o.z }, '#efaa68', 1.2, alpha, 'x', 10);
+    drawArrow3D(o, { x: o.x, y: o.y + 0.9, z: o.z }, '#75dbc8', 1.2, alpha, 'y', 10);
+    drawArrow3D(o, { x: o.x, y: o.y, z: o.z - 0.9 }, '#7f9ad9', 1.2, alpha, 'z', 10);
+  }
+
+  /* ---------------- molecules drawing ---------------- */
+  function drawMoleculeTrails(alphaScale = 1) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    for (const m of molecules) {
+      if (m.trail.length < 2) continue;
+      if (state.vxFilter && m.vx <= 0) continue;
+      if (state.isoBlend > 0.36) continue;
+      const color = MOL_COLORS[m.color];
+      for (let i = 1; i < m.trail.length; i++) {
+        const p1 = project(m.trail[i - 1]);
+        const p2 = project(m.trail[i]);
+        const a = (i / m.trail.length) * 0.13 * alphaScale;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = a;
+        ctx.lineWidth = 0.7 + i * 0.12;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawMolecules() {
+    const selected = state.selectedId ? molecules.find(m => m.id === state.selectedId) : null;
+    const drawList = [];
+    for (const m of molecules) {
+      const p = project(m);
+      m._screen = { x: p.x, y: p.y, r: Math.max(2.5, m.r * p.s * 1.35), s: p.s, z: p.z };
+      drawList.push({ m, p });
+    }
+    drawList.sort((a, b) => a.p.z - b.p.z);
+
+    ctx.save();
+    for (const { m, p } of drawList) {
+      let alpha = clamp(0.48 + (p.z + 2.5) * 0.08, 0.3, 0.96);
+      if (state.vxFilter && m.vx <= 0) alpha *= 0.2;
+      if (state.isoBlend > 0.2) alpha *= Math.max(0, 1 - state.isoBlend * 1.02);
+      if (alpha <= 0.018) continue;
+      const size = Math.max(4.2, m.r * p.s * 4.7);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(MOL_SPRITES[m.color], p.x - size / 2, p.y - size / 2, size, size);
+
+      if (selected && selected.id === m.id) {
+        ctx.globalAlpha = 0.9;
+        ctx.strokeStyle = 'rgba(245,197,135,.85)';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size * 0.34 + 4, 0, TAU);
+        ctx.stroke();
+      } else if (!selected && state.hoverId === m.id) {
+        ctx.globalAlpha = 0.58;
+        ctx.strokeStyle = 'rgba(116,231,210,.8)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size * 0.34 + 3, 0, TAU);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawHero() {
+    if (!hero.active) return;
+    const p = project(hero);
+    const x = p.x, y = p.y;
+    const size = Math.max(12, hero.r * p.s * 5.2);
+    ctx.save();
+    ctx.globalAlpha = 0.36;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, size * 0.9);
+    g.addColorStop(0, 'rgba(255,212,145,.48)');
+    g.addColorStop(1, 'rgba(255,191,103,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.9, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.drawImage(HERO_SPRITE, x - size / 2, y - size / 2, size, size);
+    ctx.restore();
+
+    const heroLabelX = state.step === 1 ? -35 : 0;
+    const heroLabelY = state.step === 1 ? 15 : -7;
+    drawPill('分子 i', { x: hero.x, y: hero.y + 0.38, z: hero.z }, heroLabelX, heroLabelY, {
+      size: 8.6, color: '#f6d59c', border: 'rgba(244,198,135,.35)', bg: 'rgba(28,30,20,.82)'
+    });
+
+    if (state.step === 1) {
+      const near = hero.phase === 'hold' || hero.x > BOX.hx - 1.45;
+      if (!near) {
+        const dir = hero.vx >= 0 ? 1 : -1;
+        drawArrow3D(
+          { x: hero.x, y: hero.y + 0.02, z: hero.z },
+          { x: hero.x + dir * 1.05, y: hero.y + 0.02, z: hero.z },
+          '#74e7d2', 1.7, 0.92, 'v_ix', 10
+        );
+      } else {
+        drawArrow3D(
+          { x: BOX.hx - 2.25, y: hero.y + 0.66, z: hero.z + 0.18 },
+          { x: BOX.hx - 0.16, y: hero.y + 0.66, z: hero.z + 0.18 },
+          '#efb271', 1.45, 0.9, 'm v_ix', 9
+        );
+        drawArrow3D(
+          { x: BOX.hx - 0.16, y: hero.y - 0.35, z: hero.z + 0.18 },
+          { x: BOX.hx - 2.05, y: hero.y - 0.35, z: hero.z + 0.18 },
+          '#7da7e4', 1.45, 0.9, '−m v_ix', 9
+        );
+        drawPill('Δp_ix = −2m v_ix', { x: BOX.hx, y: hero.y - 1.13, z: hero.z + 0.2 }, 0, 0, {
+          size: 9.2, family: '"Cambria Math", Georgia, serif', italic: true,
+          color: '#f2c78c', border: 'rgba(244,198,135,.32)', bg: 'rgba(29,28,20,.84)'
+        });
+      }
+    }
+    if (state.step === 2) {
+      drawArrow3D(
+        { x: BOX.hx + 0.03, y: hero.y + 0.18, z: hero.z },
+        { x: BOX.hx + 1.28, y: hero.y + 0.18, z: hero.z },
+        '#f08a68', 2.0, 0.98, 'I_ix = 2m v_ix', 10
+      );
+    }
+  }
+
+  /* ---------------- flux cylinder ---------------- */
+  const FLUX = {
+    x0: BOX.hx - 1.5,
+    x1: BOX.hx - 0.025,
+    yc: 0.76,
+    zc: -0.7,
+    radius: 0.72,
+    segments: 38
+  };
+
+  function fluxCirclePoint(angle, x) {
+    return {
+      x,
+      y: FLUX.yc + Math.cos(angle) * FLUX.radius,
+      z: FLUX.zc + Math.sin(angle) * FLUX.radius
+    };
+  }
+
+  function drawFluxCylinder(blend = 1) {
+    if (state.step !== 3 || blend <= 0) return;
+    const n = FLUX.segments;
+    ctx.save();
+
+    // Transparent side: many thin quads make a proper cylindrical tube.
+    const sideQuads = [];
+    for (let i = 0; i < n; i++) {
+      const a0 = i / n * TAU;
+      const a1 = (i + 1) / n * TAU;
+      const pts = [
+        fluxCirclePoint(a0, FLUX.x0),
+        fluxCirclePoint(a1, FLUX.x0),
+        fluxCirclePoint(a1, FLUX.x1),
+        fluxCirclePoint(a0, FLUX.x1)
+      ];
+      const depth = pts.reduce((sum, p) => sum + toCamera(p).z, 0) / 4;
+      sideQuads.push({ pts, depth });
+    }
+    sideQuads.sort((a, b) => a.depth - b.depth);
+    for (const q of sideQuads) {
+      projectPath(q.pts);
+      ctx.fillStyle = 'rgba(245,198,135,.06)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(245,198,135,.09)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
+    // Cross-section rings emphasize the cylinder's constant circular base.
+    const xs = [FLUX.x0, FLUX.x0 + (FLUX.x1 - FLUX.x0) * .34, FLUX.x0 + (FLUX.x1 - FLUX.x0) * .68, FLUX.x1];
+    xs.forEach((x, idx) => {
+      ctx.beginPath();
+      for (let i = 0; i <= 64; i++) {
+        const p = project(fluxCirclePoint(i / 64 * TAU, x));
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = idx === xs.length - 1
+        ? 'rgba(245,198,135,.82)'
+        : `rgba(245,198,135,${0.2 - idx * 0.035})`;
+      ctx.lineWidth = idx === xs.length - 1 ? 1.2 : 0.7;
+      ctx.setLineDash(idx === 0 ? [3, 4] : []);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // Back cap and the highlighted base area ds on the wall.
+    projectPath(Array.from({ length: 64 }, (_, i) => fluxCirclePoint(i / 64 * TAU, FLUX.x0)));
+    ctx.fillStyle = 'rgba(245,198,135,.045)';
+    ctx.fill();
+    projectPath(Array.from({ length: 64 }, (_, i) => fluxCirclePoint(i / 64 * TAU, FLUX.x1)));
+    ctx.fillStyle = 'rgba(245,198,135,.17)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(245,198,135,.92)';
+    ctx.lineWidth = 1.35;
+    ctx.stroke();
+
+    const base = project({ x: FLUX.x1, y: FLUX.yc, z: FLUX.zc });
+    const g = ctx.createRadialGradient(base.x, base.y, 0, base.x, base.y, 42);
+    g.addColorStop(0, 'rgba(255,224,169,.25)');
+    g.addColorStop(1, 'rgba(255,202,120,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(base.x, base.y, 42, 0, TAU);
+    ctx.fill();
+
+    // Axis / height annotation.
+    const topY = FLUX.yc + FLUX.radius + 0.12;
+    drawLine3D(
+      { x: FLUX.x0, y: topY, z: FLUX.zc },
+      { x: FLUX.x1, y: topY, z: FLUX.zc },
+      'rgba(245,198,135,.62)', 1.0, 0.9
+    );
+    drawPill('v_ix dt', { x: (FLUX.x0 + FLUX.x1) / 2, y: topY, z: FLUX.zc }, 0, -12, {
+      size: 9.2, italic: true, family: '"Cambria Math", Georgia, serif',
+      color: '#f8d49b', border: 'rgba(245,198,135,.33)', bg: 'rgba(34,29,18,.86)'
+    });
+    drawPill('ds', { x: FLUX.x1, y: FLUX.yc, z: FLUX.zc }, 22, 0, {
+      size: 9.5, italic: true, family: '"Cambria Math", Georgia, serif',
+      color: '#f8d49b', border: 'rgba(245,198,135,.4)', bg: 'rgba(34,29,18,.86)'
+    });
+    ctx.restore();
+  }
+
+  function drawFluxDots() {
+    if (state.step !== 3) return;
+    const progress = (state.time * 0.28) % 1;
+    ctx.save();
+    for (let i = 0; i < 6; i++) {
+      const phase = (progress + i / 6) % 1;
+      const angle = i * 2.35 + 0.5;
+      const radial = 0.18 + (i % 3) * 0.16;
+      const x = FLUX.x0 + phase * (FLUX.x1 - FLUX.x0);
+      const y = FLUX.yc + Math.cos(angle) * radial;
+      const z = FLUX.zc + Math.sin(angle) * radial;
+      const p = project({ x, y, z });
+      const size = 15;
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(MOL_SPRITES[3], p.x - size / 2, p.y - size / 2, size, size);
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#f7ce8f';
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(p.x + 5, p.y);
+      ctx.lineTo(p.x + 14, p.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x + 14, p.y);
+      ctx.lineTo(p.x + 10.6, p.y - 2.6);
+      ctx.lineTo(p.x + 10.6, p.y + 2.6);
+      ctx.closePath();
+      ctx.fillStyle = '#f7ce8f';
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---------------- isotropy ---------------- */
+  function drawIsotropy() {
+    const blend = state.isoBlend;
+    if (blend < 0.015) return;
+    const center = { x: 0.12, y: 0.08, z: 0 };
+    const R = 2.72;
+    const c = project(center);
+    ctx.save();
+    ctx.globalAlpha = blend;
+
+    const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, Math.max(60, R * c.s));
+    g.addColorStop(0, 'rgba(33,124,111,.5)');
+    g.addColorStop(0.68, 'rgba(17,73,70,.2)');
+    g.addColorStop(1, 'rgba(8,45,46,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, R * c.s, 0, TAU);
+    ctx.fill();
+
+    // latitude circles
+    for (const phiDeg of [-62, -32, 0, 32, 62]) {
+      const phi = phiDeg * Math.PI / 180;
+      const ry = R * Math.sin(phi);
+      const rr = R * Math.cos(phi);
+      ctx.beginPath();
+      for (let i = 0; i <= 72; i++) {
+        const a = i / 72 * TAU;
+        const p = project({ x: center.x + rr * Math.cos(a), y: center.y + ry, z: center.z + rr * Math.sin(a) });
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = 'rgba(143,232,215,.19)';
+      ctx.lineWidth = 0.85;
+      ctx.stroke();
+    }
+    // longitude circles
+    for (let k = 0; k < 6; k++) {
+      const theta = k / 6 * Math.PI + 0.2;
+      ctx.beginPath();
+      for (let i = 0; i <= 72; i++) {
+        const phi = -Math.PI / 2 + i / 72 * Math.PI;
+        const p = project({
+          x: center.x + R * Math.cos(phi) * Math.cos(theta),
+          y: center.y + R * Math.sin(phi),
+          z: center.z + R * Math.cos(phi) * Math.sin(theta)
+        });
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = 'rgba(143,232,215,.15)';
+      ctx.lineWidth = 0.75;
+      ctx.stroke();
+    }
+
+    // velocity arrows
+    const items = isoVectors.map(v => {
+      const wobble = 1 + 0.04 * Math.sin(state.time * 0.8 + v.phase);
+      const len = R * v.len * wobble;
+      const end = { x: center.x + v.x * len, y: center.y + v.y * len, z: center.z + v.z * len };
+      return { v, end, z: toCamera(end).z };
+    }).sort((a, b) => a.z - b.z);
+    for (const it of items) {
+      const ax = Math.abs(it.end.x - center.x), ay = Math.abs(it.end.y - center.y), az = Math.abs(it.end.z - center.z);
+      let color = '#7fa7e8';
+      if (ax >= ay && ax >= az) color = '#ef8d69';
+      else if (ay >= az) color = '#74e7d2';
+      const alpha = clamp(0.3 + (it.z + R) / (2 * R) * 0.56, 0.26, 0.86) * blend;
+      const p1 = project(center), p2 = project(it.end);
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = 1.05;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p2.x, p2.y, 1.7, 0, TAU);
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+    ctx.globalAlpha = blend;
+
+    // axes
+    drawArrow3D(center, { x: center.x + R * 1.12, y: center.y, z: center.z }, '#efaa68', 1.5, 0.82 * blend, 'x', 11);
+    drawArrow3D(center, { x: center.x, y: center.y + R * 1.12, z: center.z }, '#74e7d2', 1.5, 0.82 * blend, 'y', 11);
+    drawArrow3D(center, { x: center.x, y: center.y, z: center.z + R * 1.12 }, '#7fa7e8', 1.5, 0.82 * blend, 'z', 11);
+
+    const op = project(center);
+    ctx.globalAlpha = blend * 0.9;
+    ctx.beginPath();
+    ctx.arc(op.x, op.y, 3.4, 0, TAU);
+    ctx.fillStyle = 'rgba(239,246,239,.9)';
+    ctx.fill();
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    drawPill('速度空间 · 各向同性', { x: center.x, y: center.y + R + 0.34, z: center.z }, 0, 0, {
+      size: 9.2, alpha: blend, color: 'rgba(217,243,234,.82)',
+      border: 'rgba(116,231,210,.24)', bg: 'rgba(3,25,29,.8)'
+    });
+  }
+
+  function drawEnergyHalos() {
+    if (state.step !== 6) return;
+    ctx.save();
+    for (let i = 0; i < molecules.length; i += 19) {
+      const m = molecules[i];
+      if (!m._screen) continue;
+      const p = m._screen;
+      const pulse = 0.5 + 0.5 * Math.sin(state.time * 2 + i);
+      ctx.globalAlpha = 0.16 + pulse * 0.14;
+      ctx.strokeStyle = '#f1bd75';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 2.4 + 4 + pulse * 2, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.restore();
+    const sample = molecules[5];
+    if (sample && sample._screen) {
+      drawPill('ε̄_k = ½ m v²', { x: sample.x, y: sample.y + 0.36, z: sample.z }, 0, -8, {
+        size: 8.8, family: '"Cambria Math", Georgia, serif', italic: true,
+        color: '#f5ca8d', border: 'rgba(241,189,117,.35)', bg: 'rgba(34,28,18,.82)'
+      });
+    }
+  }
+
+  /* ---------------- render ---------------- */
+  function drawSceneLabels() {
+    drawWallTag();
+    drawDimensions();
+    drawAxes();
+    if (state.step === 5) {
+      drawPill('v_x² = v_y² = v_z²', { x: 0.12, y: 2.2, z: 0 }, 0, 0, {
+        size: 10.2, family: '"Cambria Math", Georgia, serif',
+        color: 'rgba(215,240,232,.78)', border: 'rgba(116,231,210,.2)', bg: 'rgba(3,25,29,.74)'
+      });
+    }
+  }
+
+  function render() {
+    const w = view.width, h = view.height;
+    ctx.clearRect(0, 0, w, h);
+    drawBackdrop();
+    drawFloor();
+    drawBoxFaces();
+    drawMoleculeTrails(1 - state.isoBlend);
+    if (state.step === 3) drawFluxCylinder(1);
+    drawMolecules();
+    drawWallRipples();
+    drawHero();
+    if (state.step === 3) drawFluxDots();
+    drawWallPressure();
+    drawBoxEdges();
+    drawEnergyHalos();
+    drawIsotropy();
+    drawSceneLabels();
+  }
+
+  /* ---------------- simulation loop ---------------- */
+  let lastFrame = performance.now();
+
+  function frame(now) {
+    const dt = clamp((now - lastFrame) / 1000, 0, 0.045);
+    lastFrame = now;
+    state.time += dt;
+    state.tick++;
+
+    if (state.playing) {
+      updateMolecules(dt);
+      updateHero(dt);
+      for (const r of ripples) r.age += dt * state.speed;
+      ripples = ripples.filter(r => r.age < r.life);
+      state.hitTimer += dt;
+      if (state.hitTimer >= 1) {
+        state.hitRate = Math.round(state.hitCount / state.hitTimer);
+        state.hitCount = 0;
+        state.hitTimer = 0;
+        if (hudHits) hudHits.textContent = String(state.hitRate);
+      }
+    }
+
+    state.wallFlash *= Math.exp(-dt * 2.7);
+    state.isoBlend += (state.isoTarget - state.isoBlend) * Math.min(1, dt * 4.2);
+    view.yaw += (view.targetYaw - view.yaw) * Math.min(1, dt * 10);
+    view.pitch += (view.targetPitch - view.pitch) * Math.min(1, dt * 10);
+    view.zoom += (view.targetZoom - view.zoom) * Math.min(1, dt * 9);
+
+    if (state.selectedId) updateSelectedTooltip();
+    render();
+    updateHoverCursor();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- UI ---------------- */
+  function pressureKPa() {
+    return state.n * 1e25 * K_B * state.T / 1000;
+  }
+  function vRms() {
+    return Math.sqrt(3 * K_B * state.T / M_N2);
+  }
+
+  function setRangeFill(el) {
+    const min = Number(el.min), max = Number(el.max);
+    el.style.setProperty('--fill', `${((Number(el.value) - min) / (max - min)) * 100}%`);
+  }
+
+  function updateReadouts() {
+    const p = pressureKPa();
+    const vr = vRms();
+    const pFixed = p.toFixed(1);
+    hudP.textContent = pFixed;
+    pressureValue.textContent = pFixed;
+    vRmsValue.textContent = Math.round(vr);
+    hudV.textContent = Math.round(vr);
+    gaugeFill.style.width = `${clamp(p / P_MAX * 100, 3, 100)}%`;
+    atmValue.textContent = (p / 101.325).toFixed(2);
+    $$('[data-lab-p]').forEach(el => { el.textContent = pFixed; });
+    $$('[data-lab-n]').forEach(el => { el.textContent = state.n.toFixed(2); });
+    $$('[data-lab-t]').forEach(el => { el.textContent = String(state.T); });
+    $$('[data-lab-v]').forEach(el => { el.textContent = String(Math.round(vr)); });
+    $$('[data-lab-gauge]').forEach(el => { el.style.width = `${clamp(p / P_MAX * 100, 3, 100)}%`; });
+    tempValue.innerHTML = `${state.T} <span>K</span>`;
+    densityValue.innerHTML = `${state.n.toFixed(2)} <span>×10²⁵ m⁻³</span>`;
+    distT.textContent = `T = ${state.T} K`;
+    distLabel.textContent = `N₂ · ${state.T} K`;
+    setRangeFill(tempRange);
+    setRangeFill(densityRange);
+    drawDistribution();
+  }
+
+  function drawDistribution() {
+    const rect = distChart.getBoundingClientRect();
+    if (!rect.width) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const cw = Math.max(1, rect.width), ch = Math.max(1, rect.height);
+    if (distChart.width !== Math.round(cw * dpr) || distChart.height !== Math.round(ch * dpr)) {
+      distChart.width = Math.round(cw * dpr);
+      distChart.height = Math.round(ch * dpr);
+    }
+    dctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dctx.clearRect(0, 0, cw, ch);
+
+    const vmax = 1100;
+    const T = state.T;
+    const f = v => {
+      if (v <= 0) return 0;
+      const a = MOLAR_N2 / (2 * R_GAS * T);
+      return 4 * Math.PI * Math.pow(a / Math.PI, 1.5) * v * v * Math.exp(-a * v * v);
+    };
+    let peak = 0.00001;
+    const N = 130;
+    const vals = [];
+    for (let i = 0; i <= N; i++) {
+      const v = i / N * vmax;
+      const y = f(v);
+      peak = Math.max(peak, y);
+      vals.push({ v, y });
+    }
+
+    const padX = 2, padTop = 5, padBottom = 6;
+    const plotW = cw - padX * 2;
+    const plotH = ch - padTop - padBottom;
+    const X = v => padX + (v / vmax) * plotW;
+    const Y = y => padTop + (1 - y / peak) * plotH;
+
+    const fillGrad = dctx.createLinearGradient(0, padTop, 0, ch);
+    fillGrad.addColorStop(0, 'rgba(10,107,97,.30)');
+    fillGrad.addColorStop(1, 'rgba(10,107,97,.015)');
+    dctx.beginPath();
+    dctx.moveTo(X(0), ch - padBottom);
+    for (const pt of vals) dctx.lineTo(X(pt.v), Y(pt.y));
+    dctx.lineTo(X(vmax), ch - padBottom);
+    dctx.closePath();
+    dctx.fillStyle = fillGrad;
+    dctx.fill();
+
+    dctx.beginPath();
+    vals.forEach((pt, i) => {
+      if (i === 0) dctx.moveTo(X(pt.v), Y(pt.y));
+      else dctx.lineTo(X(pt.v), Y(pt.y));
+    });
+    dctx.strokeStyle = 'rgba(10,107,97,.72)';
+    dctx.lineWidth = 1.2;
+    dctx.stroke();
+
+    const vrm = vRms();
+    const xm = X(clamp(vrm, 0, vmax));
+    dctx.beginPath();
+    dctx.moveTo(xm, padTop - 1);
+    dctx.lineTo(xm, ch - padBottom);
+    dctx.strokeStyle = 'rgba(204,98,68,.72)';
+    dctx.lineWidth = 1;
+    dctx.setLineDash([2, 3]);
+    dctx.stroke();
+    dctx.setLineDash([]);
+    dctx.beginPath();
+    dctx.arc(xm, Y(f(vrm)), 2.3, 0, TAU);
+    dctx.fillStyle = '#cc6244';
+    dctx.fill();
+
+    dctx.beginPath();
+    dctx.moveTo(padX, ch - padBottom);
+    dctx.lineTo(cw - padX, ch - padBottom);
+    dctx.strokeStyle = 'rgba(19,43,46,.10)';
+    dctx.lineWidth = 1;
+    dctx.stroke();
+  }
+
+  function updatePlayUI() {
+    const playing = state.playing;
+    for (const btn of [playBtn, playWide]) {
+      const pause = btn.querySelector('.ico-pause');
+      const play = btn.querySelector('.ico-play');
+      if (pause) pause.style.display = playing ? '' : 'none';
+      if (play) play.style.display = playing ? 'none' : '';
+      btn.setAttribute('aria-label', playing ? '暂停分子运动' : '播放分子运动');
+      btn.title = playing ? '暂停 / 播放（Space）' : '暂停 / 播放（Space）';
+    }
+    playLabel.textContent = playing ? '暂停演示' : '继续演示';
+  }
+
+  function buildStepDots() {
+    stepDots.innerHTML = '';
+    STEPS.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'step-dot';
+      b.textContent = s.no;
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', `第 ${i + 1} 步：${s.tag}`);
+      b.addEventListener('click', () => setStep(i));
+      stepDots.appendChild(b);
+    });
+  }
+
+  function updateStepDots() {
+    const dots = Array.from(stepDots.children);
+    dots.forEach((d, i) => {
+      if (i === state.step) d.setAttribute('aria-current', 'step');
+      else d.removeAttribute('aria-current');
+      d.setAttribute('aria-selected', i === state.step ? 'true' : 'false');
+    });
+  }
+
+  function renderStepBody() {
+    const s = STEPS[state.step];
+    const points = s.points.map(p => `<li><b>${p[0]} ·</b> ${p[1]}</li>`).join('');
+    stepBody.innerHTML = `
+      <div class="step-meta"><span class="step-tag">${s.tag}</span></div>
+      <h2>${s.title}</h2>
+      <p class="step-lead">${s.lead}</p>
+      <ul class="step-points">${points}</ul>
+      <div class="eq-card">
+        <div class="eq-label"><span>关键式 / KEY RELATION</span><b>${s.no}</b></div>
+        <div class="eq-lines">${s.eq}</div>
+        <div class="eq-foot">${s.eqFoot}</div>
+      </div>
+      <div class="step-note"><b>WHY</b>${s.note}</div>
+    `;
+    stepBody.style.animation = 'none';
+    void stepBody.offsetWidth;
+    stepBody.style.animation = '';
+  }
+
+  function setStep(i, opts = {}) {
+    const idx = clamp(i, 0, STEPS.length - 1);
+    state.step = idx;
+    state.vxFilter = idx === 3;
+    state.isoTarget = idx === 5 ? 1 : 0;
+    if (idx === 5) {
+      state.selectedId = null;
+      molTip.classList.remove('show', 'locked');
+    }
+    const s = STEPS[idx];
+    sceneIndex.textContent = s.no;
+    sceneName.textContent = s.scene;
+    sceneSub.textContent = s.sceneSub;
+    stepNow.textContent = s.no;
+    navProgress.textContent = `${s.no} / 07`;
+    fluxBadge.classList.toggle('show', idx === 3);
+    const hints = [
+      '拖动旋转 · 滚轮缩放 · 点击分子查看速度',
+      '观察被标记的分子 i 与器壁 A₁ 的碰撞',
+      '碰撞瞬间：x 方向速度反向，切向速度不变',
+      '只突出 vₓ > 0 的分子，圆柱体中的分子会撞上 ds',
+      '大量碰撞冲量在器壁上的统计叠加',
+      '转动视角，观察速度空间的球对称',
+      'P 是大量分子统计行为的宏观表现'
+    ];
+    sceneHint.textContent = hints[idx];
+    updateStepDots();
+    prevBtn.disabled = idx === 0;
+    nextBtn.innerHTML = idx === STEPS.length - 1
+      ? `从头再看 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>`
+      : `下一步 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>`;
+    renderStepBody();
+    stepScroll.scrollTop = 0;
+    configureHero(idx);
+    document.body.dataset.step = String(idx + 1);
+    if (!opts.silent) updateReadouts();
+  }
+
+  function goNext() {
+    if (state.step >= STEPS.length - 1) setStep(0);
+    else setStep(state.step + 1);
+  }
+  function goPrev() {
+    if (state.step > 0) setStep(state.step - 1);
+  }
+
+  function setTemperature(v) {
+    const next = clamp(Number(v), 200, 600);
+    const prev = state.T;
+    state.T = next;
+    tempRange.value = String(next);
+    if (prev !== next) rescaleVelocities(prev, next);
+    updateReadouts();
+  }
+
+  function setDensity(v) {
+    const next = clamp(Number(v), 0.8, 3.6);
+    state.n = next;
+    densityRange.value = String(next);
+    syncMoleculeCount();
+    updateReadouts();
+  }
+
+  /* ---------------- tooltip ---------------- */
+  function currentVrmsFactor() {
+    let sum = 0;
+    for (const m of molecules) sum += m.vx * m.vx + m.vy * m.vy + m.vz * m.vz;
+    const rms = Math.sqrt(sum / Math.max(1, molecules.length));
+    return vRms() / Math.max(0.001, rms);
+  }
+
+  function signed(v, digits = 0) {
+    const s = Math.abs(v).toFixed(digits);
+    return `${v >= 0 ? '+' : '−'}${s}`;
+  }
+
+  function updateTooltipContent(m) {
+    const factor = currentVrmsFactor();
+    tipId.textContent = `MOLECULE #${String(m.id).padStart(3, '0')}`;
+    tipLock.textContent = state.selectedId === m.id ? 'LOCKED' : 'HOVER';
+    tipVx.textContent = `${signed(m.vx * factor)} m/s`;
+    tipVy.textContent = `${signed(m.vy * factor)} m/s`;
+    tipVz.textContent = `${signed(m.vz * factor)} m/s`;
+    molTip.classList.toggle('locked', state.selectedId === m.id);
+  }
+
+  function positionTooltip(m) {
+    if (!m._screen) return;
+    const tw = molTip.offsetWidth || 156;
+    const th = molTip.offsetHeight || 84;
+    let x = m._screen.x + 15;
+    let y = m._screen.y - th / 2;
+    if (x + tw > view.width - 10) x = m._screen.x - tw - 15;
+    if (x < 8) x = 8;
+    y = clamp(y, 68, view.height - th - 10);
+    molTip.style.left = `${x}px`;
+    molTip.style.top = `${y}px`;
+  }
+
+  function updateSelectedTooltip() {
+    if (!state.selectedId) return;
+    const m = molecules.find(mm => mm.id === state.selectedId);
+    if (!m || state.step === 5) {
+      molTip.classList.remove('show', 'locked');
+      state.selectedId = null;
+      return;
+    }
+    updateTooltipContent(m);
+    positionTooltip(m);
+  }
+
+  function pickMoleculeAt(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left, y = clientY - rect.top;
+    let best = null, bestD = 17;
+    for (const m of molecules) {
+      if (!m._screen) continue;
+      if (state.vxFilter && m.vx <= 0) continue;
+      const d = Math.hypot(m._screen.x - x, m._screen.y - y);
+      if (d < bestD) {
+        bestD = d;
+        best = m;
+      }
+    }
+    return best;
+  }
+
+  function hoverMoleculeAt(clientX, clientY) {
+    if (state.activeDrag) return;
+    if (state.step === 5) return;
+    const m = pickMoleculeAt(clientX, clientY);
+    if (m) {
+      state.hoverId = m.id;
+      if (!state.selectedId) {
+        updateTooltipContent(m);
+        positionTooltip(m);
+        molTip.classList.add('show');
+      }
+      canvas.style.cursor = 'pointer';
+    } else {
+      state.hoverId = null;
+      if (!state.selectedId) molTip.classList.remove('show', 'locked');
+      canvas.style.cursor = state.activeDrag ? 'grabbing' : 'grab';
+    }
+  }
+
+  let hoverCheckQueued = false;
+  let lastPointer = null;
+  function updateHoverCursor() {
+    if (!lastPointer || state.activeDrag) return;
+    // hit test at low frequency to keep the render loop light
+    if (hoverCheckQueued) return;
+    hoverCheckQueued = true;
+    requestAnimationFrame(() => {
+      hoverCheckQueued = false;
+      if (!lastPointer || state.activeDrag) return;
+      const m = pickMoleculeAt(lastPointer.x, lastPointer.y);
+      if (m && !state.selectedId && m.id !== state.hoverId) {
+        state.hoverId = m.id;
+        updateTooltipContent(m);
+        positionTooltip(m);
+        molTip.classList.add('show');
+      } else if (!m && !state.selectedId) {
+        state.hoverId = null;
+        molTip.classList.remove('show');
+      }
+    });
+  }
+
+  /* ---------------- events ---------------- */
+  buildStepDots();
+  updatePlayUI();
+  tempRange.value = String(state.T);
+  densityRange.value = String(state.n);
+  resetMolecules();
+  syncMoleculeCount();
+  setStep(state.step, { silent: true });
+  updateReadouts();
+
+  prevBtn.addEventListener('click', goPrev);
+  nextBtn.addEventListener('click', goNext);
+
+  playBtn.addEventListener('click', () => {
+    state.playing = !state.playing;
+    updatePlayUI();
+  });
+  playWide.addEventListener('click', () => {
+    state.playing = !state.playing;
+    updatePlayUI();
+  });
+
+  const speeds = [0.5, 1, 1.6];
+  speedBtn.addEventListener('click', () => {
+    const idx = (speeds.indexOf(state.speed) + 1) % speeds.length;
+    state.speed = speeds[idx];
+    speedBtn.textContent = `${state.speed}×`;
+    speedBtn.setAttribute('aria-label', `演示速度 ${state.speed} 倍`);
+  });
+
+  resetViewBtn.addEventListener('click', () => {
+    view.targetYaw = -0.64;
+    view.targetPitch = 0.22;
+    view.targetZoom = 1;
+  });
+
+  fullBtn.addEventListener('click', async () => {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    } catch (err) {
+      // Fullscreen may be blocked in embedded previews; no need to surface it.
+    }
+  });
+
+  tempRange.addEventListener('input', () => setTemperature(tempRange.value));
+  densityRange.addEventListener('input', () => setDensity(densityRange.value));
+
+  assumptionsBtn2.addEventListener('click', () => {
+    if (typeof assumptionsDialog.showModal === 'function') assumptionsDialog.showModal();
+  });
+  modalClose.addEventListener('click', () => assumptionsDialog.close());
+  assumptionsDialog.addEventListener('click', e => {
+    if (e.target === assumptionsDialog) assumptionsDialog.close();
+  });
+
+  // pointer camera controls
+  const pointers = new Map();
+  let dragStart = null;
+  let pinchStart = null;
+  let totalMove = 0;
+
+  canvas.addEventListener('pointerdown', e => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    canvas.setPointerCapture?.(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    totalMove = 0;
+    if (pointers.size === 1) {
+      dragStart = {
+        x: e.clientX, y: e.clientY,
+        yaw: view.targetYaw, pitch: view.targetPitch,
+        moved: false
+      };
+      state.activeDrag = false;
+      lastPointer = { x: e.clientX, y: e.clientY };
+    } else if (pointers.size === 2) {
+      const arr = Array.from(pointers.values());
+      pinchStart = {
+        dist: Math.hypot(arr[0].x - arr[1].x, arr[0].y - arr[1].y),
+        zoom: view.targetZoom
+      };
+      dragStart = null;
+    }
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) {
+      lastPointer = { x: e.clientX, y: e.clientY };
+      hoverMoleculeAt(e.clientX, e.clientY);
+      return;
+    }
+    const prev = pointers.get(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1 && dragStart) {
+      const dx = e.clientX - dragStart.x;
+      const dy = e.clientY - dragStart.y;
+      totalMove = Math.max(totalMove, Math.hypot(dx, dy));
+      if (Math.hypot(dx, dy) > 3) {
+        state.activeDrag = true;
+        canvas.classList.add('dragging');
+        molTip.classList.remove('show');
+      }
+      view.targetYaw = dragStart.yaw + dx * 0.0062;
+      view.targetPitch = clamp(dragStart.pitch + dy * 0.0045, -0.08, 0.92);
+      dragStart.moved = totalMove > 3;
+    } else if (pointers.size === 2 && pinchStart) {
+      const arr = Array.from(pointers.values());
+      const dist = Math.hypot(arr[0].x - arr[1].x, arr[0].y - arr[1].y);
+      view.targetZoom = clamp(pinchStart.zoom * (dist / Math.max(10, pinchStart.dist)), 0.78, 1.7);
+      state.activeDrag = true;
+      canvas.classList.add('dragging');
+    }
+    lastPointer = { x: e.clientX, y: e.clientY };
+  });
+
+  function endPointer(e) {
+    if (!pointers.has(e.pointerId)) return;
+    const wasOne = pointers.size === 1;
+    pointers.delete(e.pointerId);
+    if (wasOne && !state.activeDrag && totalMove <= 4) {
+      const m = pickMoleculeAt(e.clientX, e.clientY);
+      if (m) {
+        if (state.selectedId === m.id) {
+          state.selectedId = null;
+          molTip.classList.remove('locked');
+          tipLock.textContent = 'HOVER';
+          if (state.hoverId !== m.id) molTip.classList.remove('show');
+        } else {
+          state.selectedId = m.id;
+          updateTooltipContent(m);
+          positionTooltip(m);
+          molTip.classList.add('show', 'locked');
+        }
+      } else {
+        state.selectedId = null;
+        molTip.classList.remove('locked');
+        molTip.classList.remove('show');
+      }
+    }
+    if (pointers.size === 0) {
+      state.activeDrag = false;
+      dragStart = null;
+      pinchStart = null;
+      canvas.classList.remove('dragging');
+      canvas.style.cursor = 'grab';
+    } else if (pointers.size === 1) {
+      const left = Array.from(pointers.values())[0];
+      dragStart = { x: left.x, y: left.y, yaw: view.targetYaw, pitch: view.targetPitch, moved: false };
+      pinchStart = null;
+    }
+  }
+
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('lostpointercapture', endPointer);
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    view.targetZoom = clamp(view.targetZoom - e.deltaY * 0.0011, 0.78, 1.7);
+  }, { passive: false });
+
+  canvas.addEventListener('dblclick', () => {
+    view.targetYaw = -0.64;
+    view.targetPitch = 0.22;
+    view.targetZoom = 1;
+  });
+
+  canvas.addEventListener('pointerleave', () => {
+    if (!state.selectedId) molTip.classList.remove('show');
+  });
+
+  // keyboard
+  window.addEventListener('keydown', e => {
+    const tag = (e.target && e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'button' || tag === 'textarea' || tag === 'select' || tag === 'a' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      goNext();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goPrev();
+    } else if (e.code === 'Space') {
+      e.preventDefault();
+      state.playing = !state.playing;
+      updatePlayUI();
+    } else if (e.key === 'r' || e.key === 'R') {
+      view.targetYaw = -0.64;
+      view.targetPitch = 0.22;
+      view.targetZoom = 1;
+    } else if (/^[1-7]$/.test(e.key)) {
+      setStep(Number(e.key) - 1);
+    }
+  });
+
+  // quiz
+  quizOptions.addEventListener('click', e => {
+    const btn = e.target.closest('.quiz-option');
+    if (!btn) return;
+    const answer = btn.dataset.answer;
+    Array.from(quizOptions.children).forEach(b => b.classList.remove('correct', 'wrong'));
+    if (answer === 'a') {
+      btn.classList.add('correct');
+      quizFeedback.textContent = '答对了。P = nkT ∝ T，所以温度乘 4，压强也乘 4；而 v_rms = √(3kT/m) ∝ √T，所以只乘 2。';
+    } else {
+      btn.classList.add('wrong');
+      quizFeedback.textContent = '再想一想：压强正比于 T，而方均根速率正比于 √T。';
+    }
+  });
+
+  // chart resize
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(() => drawDistribution()).observe(distChart);
+  } else {
+    window.addEventListener('resize', () => drawDistribution());
+  }
+
+  // expose a tiny debug hook for visual checks
+  window.__gasDemo = {
+    state,
+    get molecules() { return molecules; },
+    setStep,
+    setTemperature,
+    setDensity,
+    play: () => { state.playing = true; updatePlayUI(); },
+    pause: () => { state.playing = false; updatePlayUI(); },
+    view
+  };
+
+  document.documentElement.dataset.ready = '1';
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
